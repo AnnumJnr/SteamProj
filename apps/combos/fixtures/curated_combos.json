@@ -1,0 +1,956 @@
+[
+  {
+    "title": "Build It End to End",
+    "short_description": "Go from a blank screen to a fully deployed full-stack web application — HTML, CSS, JavaScript, backend, database, and all.",
+    "full_description": "This Combo takes you through every layer of a modern web application in a deliberate, layered sequence. You start with how pages are structured and styled, build interactivity with JavaScript, then cross into the backend with Node.js and REST APIs, then add a real database with SQL. The freeCodeCamp Full Stack Developer certification at the end pulls it all together into a single, coherent body of knowledge you can point to. Each course adds one layer on top of the previous — skip none of them.",
+    "overview": "A structured path from your first HTML tag to a deployed full-stack application.",
+    "who_is_this_for": "Anyone who wants to become a full-stack developer — whether you are starting completely fresh or have some front-end experience and want to add the back end. Also ideal for self-taught developers who want to close gaps and get a proper end-to-end foundation.",
+    "learning_outcomes": [
+      "Build and style complete web pages with HTML and CSS",
+      "Write JavaScript that makes pages interactive and dynamic",
+      "Build a REST API with Node.js and Express",
+      "Design and query a relational database with SQL",
+      "Connect a frontend to a backend through an API",
+      "Complete a recognised full-stack developer certification"
+    ],
+    "prerequisites": [
+      "Basic computer literacy — comfortable using a browser",
+      "No prior programming experience required"
+    ],
+    "skills_gained": [
+      "HTML & CSS",
+      "Responsive design",
+      "JavaScript (ES6+)",
+      "Algorithms and data structures",
+      "Node.js and Express",
+      "MongoDB and Mongoose",
+      "SQL and relational databases",
+      "REST API design",
+      "Git basics"
+    ],
+    "learning_path_explanation": "The path moves in strict layers. HTML and CSS first because you need to see something before you learn to make it dynamic. JavaScript next because it is the language of the web and the foundation of everything that follows. The backend comes after JavaScript — not before — because Node.js is JavaScript on the server, and that connection clicks immediately if you have just come from the JS course. SQL and databases come after the backend because you need to understand what an API is before you understand why a database exists behind it. The Full Stack Developer certification at the end is the capstone — it covers everything in an integrated project-based format.",
+    "category": "Computer Science",
+    "sub_category": "Web Development",
+    "tags": ["full-stack", "web development", "javascript", "nodejs", "sql", "html", "css", "api", "beginner"],
+    "difficulty": "Beginner",
+    "recommended_age": "Adults",
+    "estimated_weeks": 20,
+    "estimated_hours_per_week": 8,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-responsive-web-design",
+        "title": "Responsive Web Design",
+        "order": 1,
+        "is_required": true,
+        "note": "Start here. HTML and CSS from scratch, with a focus on making pages that work on any screen. Complete all five certification projects — they are not optional."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-javascript-algorithms-and-data-structures",
+        "title": "JavaScript Algorithms and Data Structures",
+        "order": 2,
+        "is_required": true,
+        "note": "Core JavaScript. Do not rush the algorithm challenges — they build the problem-solving instinct that every developer needs. This is the most important course in the combo."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-front-end-development-libraries",
+        "title": "Front End Development Libraries",
+        "order": 3,
+        "is_required": true,
+        "note": "React, Redux, Bootstrap, and Sass. After this course you can build real, interactive front-end applications — not just static pages."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-back-end-development-and-apis",
+        "title": "Back End Development and APIs",
+        "order": 4,
+        "is_required": true,
+        "note": "Node.js, Express, and building your first REST API. This is where the stack crosses from front to back. Pay close attention to how requests and responses work."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-full-stack-developer",
+        "title": "Full Stack Developer",
+        "order": 5,
+        "is_required": true,
+        "note": "The capstone. Covers HTML, CSS, JavaScript, React, Node.js, Python, and SQL in an integrated curriculum. Do this last — it will make much more sense after the previous four courses."
+      }
+    ]
+  },
+
+  {
+    "title": "Python First",
+    "short_description": "The one language that unlocks everything else in STEM — learn it properly, from first principles to real projects.",
+    "full_description": "Python is the entry point for data science, machine learning, automation, web development, and scientific computing. This Combo teaches Python the right way: starting from absolute basics, building through functions and data structures, then applying everything to real scientific computing projects. By the end you will be comfortable reading, writing, and debugging Python — and ready to branch into any direction this platform offers.",
+    "overview": "From your first line of code to real Python projects — the foundation for every STEM path on this platform.",
+    "who_is_this_for": "Absolute beginners to programming. Also strong for people who have dabbled in Python from tutorials but never built a solid, structured foundation. If you want to go anywhere in data science, AI, or scientific computing, this is where you start.",
+    "learning_outcomes": [
+      "Write Python programs that solve real problems",
+      "Understand and apply core programming concepts: variables, loops, functions, objects",
+      "Work with files, modules, and external libraries",
+      "Complete scientific computing projects in Python",
+      "Debug code systematically and read error messages with confidence"
+    ],
+    "prerequisites": [
+      "No programming experience required",
+      "A computer and an internet connection"
+    ],
+    "skills_gained": [
+      "Python 3 syntax and fundamentals",
+      "Data types and data structures",
+      "Functions and scope",
+      "Object-oriented programming basics",
+      "File I/O",
+      "Scientific computing with Python libraries",
+      "Debugging and problem solving"
+    ],
+    "learning_path_explanation": "The freeCodeCamp certification is the primary course — it is comprehensive, project-based, and covers everything you need. The two YouTube Python courses are added as supplementary viewing because watching code being written and explained is a different kind of learning from doing it yourself. Use the YouTube courses to preview or reinforce concepts as you work through the certification. Do not switch to them entirely — the projects in the certification are what build real skill.",
+    "category": "Computer Science",
+    "sub_category": "Programming",
+    "tags": ["python", "programming", "beginner", "coding", "scientific computing", "data"],
+    "difficulty": "Beginner",
+    "recommended_age": "Adults",
+    "estimated_weeks": 10,
+    "estimated_hours_per_week": 7,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-scientific-computing-with-python",
+        "title": "Scientific Computing with Python",
+        "order": 1,
+        "is_required": true,
+        "note": "The core of this combo. freeCodeCamp's Python certification — comprehensive, structured, and project-based. Work through every section and complete all five certification projects."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3",
+        "title": "Python for Beginners (Full Course) | Programming Tutorial",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional video companion. Watch chapters that correspond to what you are working on in the freeCodeCamp certification. Hearing concepts explained aloud often unlocks understanding when reading alone does not."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLZPZq0r_RZOOkUQbat8LyQii36cJf2SWT",
+        "title": "Python tutorial for beginners",
+        "order": 3,
+        "is_required": false,
+        "note": "Optional second video reference — useful if you want a different instructor's explanation of a concept that is not clicking."
+      }
+    ]
+  },
+
+  {
+    "title": "Think Like a Machine",
+    "short_description": "The mathematics, the models, and the real meaning behind artificial intelligence and machine learning.",
+    "full_description": "Artificial intelligence is not magic — it is mathematics applied to data. This Combo builds the actual foundations: the statistics and linear algebra that underpin machine learning, classical ML algorithms in Python, and then the full machine learning certification that ties theory to practice. You will understand not just how to use the tools, but why they work. That understanding is what separates engineers who can build reliable ML systems from people who just run notebooks.",
+    "overview": "From statistical foundations to training and evaluating real machine learning models in Python.",
+    "who_is_this_for": "Developers who want to understand AI beyond the hype. Scientists, engineers, and curious adults who want to build real ML systems — not just call APIs. You need solid Python before starting this combo.",
+    "learning_outcomes": [
+      "Understand the statistical and mathematical foundations of machine learning",
+      "Implement and train classical ML models (regression, classification, clustering)",
+      "Evaluate and improve model performance rigorously",
+      "Use Python ML libraries including NumPy, Pandas, and scikit-learn",
+      "Apply neural network fundamentals"
+    ],
+    "prerequisites": [
+      "Solid Python programming — complete Python First first if needed",
+      "Basic algebra and statistics — complete the Math for Data and AI combo or equivalent"
+    ],
+    "skills_gained": [
+      "Statistics and probability for ML",
+      "Linear algebra intuition",
+      "Supervised and unsupervised learning",
+      "Model training, evaluation, and validation",
+      "Neural network fundamentals",
+      "Python (NumPy, scikit-learn, TensorFlow basics)"
+    ],
+    "learning_path_explanation": "Statistics and probability come first because they are the language machine learning is written in — without them, every algorithm is a black box. The YouTube statistics course provides the conceptual grounding quickly. The data science math course bridges statistics into the linear algebra and calculus that underpin gradient descent and neural networks. The freeCodeCamp ML certification then provides the practical Python implementation — building models, evaluating them, and understanding what the numbers mean. Do not skip the theory courses and jump to the certification. The certification will make far more sense if you understand the maths behind what you are doing.",
+    "category": "Computer Science",
+    "sub_category": "Artificial Intelligence",
+    "tags": ["machine learning", "AI", "deep learning", "python", "neural networks", "statistics", "data science"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 18,
+    "estimated_hours_per_week": 10,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "YouTube",
+        "external_id": "PLLhBy6YSIT0C-r2NJKcZ_UzUZZY6EV8FM",
+        "title": "Statistics and Probability Course for Data Science | Complete Tutorial | Beginner to Intermediate | SCALER",
+        "order": 1,
+        "is_required": true,
+        "note": "Start here. Probability distributions, hypothesis testing, and statistical inference — the vocabulary of machine learning. This is not optional groundwork."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLeo1K3hjS3uuKaU2nBDwr6zrSOTzNCs0l",
+        "title": "Mathematics, statistics for data science and machine learning",
+        "order": 2,
+        "is_required": true,
+        "note": "Bridges statistics into the linear algebra and calculus that underpin ML algorithms. Pay close attention to the linear algebra sections — matrices and vectors are everywhere in ML."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-data-analysis-with-python",
+        "title": "Data Analysis with Python",
+        "order": 3,
+        "is_required": true,
+        "note": "Before you train models, you need to be comfortable working with data. Pandas, NumPy, and Matplotlib — the tools you will use in every ML project."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-machine-learning-with-python",
+        "title": "Machine Learning with Python",
+        "order": 4,
+        "is_required": true,
+        "note": "The core practical course. Neural networks, classification, regression, and clustering — all implemented in Python. Complete every project. The theory from the earlier courses will make this course significantly easier."
+      }
+    ]
+  },
+
+  {
+    "title": "Read the Numbers",
+    "short_description": "Turn raw data into real insight — statistics, Python analysis, visualisation, and SQL, the complete analyst toolkit.",
+    "full_description": "Data is everywhere and almost always misread. This Combo builds the skills to work with it properly: foundational statistics and probability, data wrangling and analysis with Python, visualisation that actually communicates findings, and the SQL that underlies almost every data system in existence. The path is deliberately sequenced — theory before tools — so that you know what you are doing and why, not just which function to call.",
+    "overview": "From statistics fundamentals to Python data analysis, visualisation, and SQL — everything a data analyst needs.",
+    "who_is_this_for": "Anyone who works with data and wants to go beyond spreadsheets — analysts, researchers, product people, and developers moving toward data roles. Also strong for students who want to apply quantitative thinking in any STEM discipline.",
+    "learning_outcomes": [
+      "Apply descriptive and inferential statistics correctly and interpret the results",
+      "Clean, transform, and analyse real datasets with Python",
+      "Write SQL to extract, filter, aggregate, and join data",
+      "Build charts and visualisations that communicate findings clearly",
+      "Spot misleading statistics and reason about uncertainty"
+    ],
+    "prerequisites": [
+      "Basic Python — complete Python First first if needed",
+      "High school level maths — algebra and basic arithmetic"
+    ],
+    "skills_gained": [
+      "Descriptive and inferential statistics",
+      "Probability",
+      "Python (Pandas, NumPy, Matplotlib, Seaborn)",
+      "Exploratory data analysis",
+      "SQL and relational databases",
+      "Data visualisation with D3.js",
+      "Data cleaning and transformation"
+    ],
+    "learning_path_explanation": "Statistics and probability come before the Python tools — deliberately. Without understanding what a mean, variance, or confidence interval actually represents, data analysis is just formatting. Once the statistical thinking is in place, the Python tools (Pandas, NumPy, Matplotlib) become genuinely powerful rather than just a way to make tables look nice. SQL comes after Python analysis because it is a different skill — pulling data out of a system — and sits naturally as the final layer once you are comfortable transforming data once you have it.",
+    "category": "Mathematics",
+    "sub_category": "Statistics and Data",
+    "tags": ["data analysis", "statistics", "python", "sql", "pandas", "visualisation", "data science"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 14,
+    "estimated_hours_per_week": 8,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-statistics-probability",
+        "title": "Statistics and Probability",
+        "order": 1,
+        "is_required": true,
+        "note": "The statistical foundation. Descriptive stats, probability, distributions, and hypothesis testing. Work through all sections and exercises — this is the thinking layer."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLLhBy6YSIT0C-r2NJKcZ_UzUZZY6EV8FM",
+        "title": "Statistics and Probability Course for Data Science | Complete Tutorial | Beginner to Intermediate | SCALER",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional video supplement to reinforce the statistics concepts above. Strong at bridging theory into data science applications."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-data-analysis-with-python",
+        "title": "Data Analysis with Python",
+        "order": 3,
+        "is_required": true,
+        "note": "Pandas, NumPy, Matplotlib, and Seaborn. Real datasets, real analysis. The statistics you learned in step 1 will make this course click in a way that it would not have otherwise."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-data-visualization",
+        "title": "Data Visualization",
+        "order": 4,
+        "is_required": true,
+        "note": "D3.js and the principles of communicating data visually. Analysis without good visualisation is analysis no one acts on."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-36",
+        "title": "Introductory Statistics",
+        "order": 5,
+        "is_required": false,
+        "note": "Optional deep reference. The full OpenStax statistics textbook — use it to go deeper on any topic from step 1, or read it end-to-end if you want a more rigorous statistical foundation."
+      }
+    ]
+  },
+
+  {
+    "title": "Defend the Stack",
+    "short_description": "How systems are attacked, how defenders think, and how to build security into everything you make.",
+    "full_description": "Cybersecurity is not a checklist — it is a mindset. This Combo builds that mindset from first principles. You will start with how computers and computation fundamentally work, then move through security-specific knowledge: how systems fail, how attackers exploit those failures, and the defensive techniques that security professionals use daily. The freeCodeCamp Information Security certification provides the hands-on practical layer — penetration testing concepts, HelmetJS, and building a secure real-time application. The quality assurance course is included because testing and security are inseparably linked — insecure software is always undertested software.",
+    "overview": "From computer fundamentals to information security certification — build the mindset and skills of a security professional.",
+    "who_is_this_for": "Developers who want to write more secure code. Aspiring security analysts and penetration testers. Anyone responsible for systems that handle user data. People working toward certifications like CompTIA Security+ who want strong foundational knowledge first.",
+    "learning_outcomes": [
+      "Explain how computers and networks work at a security-relevant level",
+      "Identify and explain common attack vectors and vulnerability classes",
+      "Apply defensive techniques: input validation, authentication, encryption, headers",
+      "Use penetration testing concepts to think like an attacker",
+      "Build and test secure web applications",
+      "Complete the freeCodeCamp Information Security certification"
+    ],
+    "prerequisites": [
+      "Some JavaScript experience — you will be writing code in the security course",
+      "Basic understanding of how the web works (HTTP, requests, responses)"
+    ],
+    "skills_gained": [
+      "Computer systems fundamentals",
+      "Cybersecurity principles",
+      "Penetration testing concepts",
+      "Web application security (OWASP)",
+      "HelmetJS and secure HTTP headers",
+      "Cryptography basics",
+      "Quality assurance and testing",
+      "Secure coding practices"
+    ],
+    "learning_path_explanation": "You cannot defend what you do not understand. The combo opens with computer fundamentals — not because it is exciting, but because it is necessary. Security thinking requires a mental model of how systems actually work underneath. The IB Computer Science topic on system fundamentals provides that grounding efficiently. The freeCodeCamp Quality Assurance course comes next because testing discipline is the closest thing to security hygiene in day-to-day development — and it uses the same Node.js environment as the security course that follows. The Information Security certification is the capstone — everything before it makes it more effective.",
+    "category": "Computer Science",
+    "sub_category": "Cybersecurity",
+    "tags": ["cybersecurity", "information security", "penetration testing", "web security", "OWASP", "secure coding"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 16,
+    "estimated_hours_per_week": 8,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "YouTube",
+        "external_id": "PL1xw3Nu1lKNVosA3P94OoiGd-0TDi9lQ1",
+        "title": "How to ACE 'IB DP Computer Science' - Topic 1 - System Fundamentals",
+        "order": 1,
+        "is_required": true,
+        "note": "Builds the mental model of how computer systems work — components, abstraction layers, and system design. The security course assumes this knowledge. Do not skip it."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLzdnOPI1iJNcvzsEOQPT1ZgDoOY6OAvGE",
+        "title": "Computer Science Fundamental Tutorials",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional supplement. Broader CS fundamentals — data structures, binary, networks. Watch sections that map to gaps in your knowledge after step 1."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-quality-assurance",
+        "title": "Quality Assurance",
+        "order": 3,
+        "is_required": true,
+        "note": "Testing with Chai, Mocha, and integration testing patterns. Security and testing are inseparable — every vulnerability is a test case waiting to be written. This course builds the discipline."
+      },
+      {
+        "provider": "freeCodeCamp",
+        "external_id": "fcc-information-security",
+        "title": "Information Security",
+        "order": 4,
+        "is_required": true,
+        "note": "The heart of the combo. Cryptography, authentication, HelmetJS, penetration testing concepts, and building a secure real-time messaging app. Complete all projects — the hands-on work is where the learning happens."
+      }
+    ]
+  },
+
+  {
+    "title": "The Math Ladder",
+    "short_description": "A complete mathematics progression from algebra through calculus — structured for adults who are building or rebuilding their mathematical foundation.",
+    "full_description": "Mathematics is not a wall — it is a ladder. Every level builds precisely on the one below it, and skipping rungs is why so many people get stuck. This Combo organises the complete progression from pre-algebra through calculus, using Khan Academy's structured curriculum paired with OpenStax textbooks for depth. Whether you are filling in gaps from school, preparing for university-level STEM, or building the mathematical foundation for data science or engineering, this is the right path.",
+    "overview": "Pre-algebra through calculus — a complete, properly sequenced mathematical foundation.",
+    "who_is_this_for": "Adults who want to rebuild or complete their mathematics education. People preparing for university STEM courses. Anyone who found maths hard in school and wants to start from the right place and go all the way through.",
+    "learning_outcomes": [
+      "Work confidently with algebraic expressions, equations, and functions",
+      "Apply trigonometric functions and their properties",
+      "Understand and compute limits, derivatives, and integrals",
+      "Think mathematically — read notation, construct proofs, and reason precisely"
+    ],
+    "prerequisites": [
+      "Basic arithmetic — if unsure, start with the Early Math or Arithmetic courses below",
+      "Patience — this path is long and worth every step"
+    ],
+    "skills_gained": [
+      "Algebra 1 and 2",
+      "Geometry",
+      "Trigonometry",
+      "Pre-calculus",
+      "Calculus (limits, derivatives, integrals)",
+      "Mathematical reasoning and notation"
+    ],
+    "learning_path_explanation": "Every course in this combo has a single prerequisite: the one before it. Pre-algebra before algebra. Algebra before geometry. Geometry and algebra before trigonometry. Trigonometry before pre-calculus. Pre-calculus before calculus. This order is not arbitrary — it reflects the logical dependency structure of mathematics itself. The OpenStax textbooks are added as optional reference material at each level. Use them to go deeper on anything the Khan Academy courses cover lightly, or to have worked examples to return to.",
+    "category": "Mathematics",
+    "sub_category": "Pure Mathematics",
+    "tags": ["mathematics", "algebra", "calculus", "trigonometry", "foundation", "STEM prep"],
+    "difficulty": "Beginner",
+    "recommended_age": "Adults",
+    "estimated_weeks": 24,
+    "estimated_hours_per_week": 6,
+    "is_public": true,
+    "is_featured": true,
+    "courses": [
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-pre-algebra",
+        "title": "Pre-Algebra",
+        "order": 1,
+        "is_required": true,
+        "note": "The foundation. Fractions, decimals, negative numbers, ratios, and basic equations. If any of this feels uncertain, start here without hesitation."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-130",
+        "title": "Elementary Algebra",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional textbook reference for the algebra level. Use alongside the Khan Academy course for deeper worked examples."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-algebra",
+        "title": "Algebra 1",
+        "order": 3,
+        "is_required": true,
+        "note": "Linear equations, inequalities, functions, and graphing. The most important single course in this combo — algebra underpins everything that follows."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-algebra2",
+        "title": "Algebra 2",
+        "order": 4,
+        "is_required": true,
+        "note": "Polynomials, rational functions, exponentials, logarithms, and complex numbers. Extends algebra into the territory needed for pre-calculus."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-geometry",
+        "title": "Geometry",
+        "order": 5,
+        "is_required": true,
+        "note": "Shapes, proofs, coordinate geometry, and trigonometry basics. Builds spatial reasoning and introduces formal mathematical argument."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-trigonometry",
+        "title": "Trigonometry",
+        "order": 6,
+        "is_required": true,
+        "note": "Sine, cosine, tangent, the unit circle, and trigonometric identities. Essential for physics, engineering, and calculus."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-precalculus",
+        "title": "Precalculus",
+        "order": 7,
+        "is_required": true,
+        "note": "Functions, composite functions, inverses, and limits at a conceptual level. The direct bridge to calculus."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-37",
+        "title": "Precalculus",
+        "order": 8,
+        "is_required": false,
+        "note": "Optional OpenStax textbook to complement the Khan Academy precalculus course. Especially useful if you plan to go into engineering or physics."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr",
+        "title": "Essence of calculus",
+        "order": 9,
+        "is_required": true,
+        "note": "Watch this before starting the full calculus course. 3Blue1Brown's Essence of Calculus series builds the geometric and intuitive understanding of what calculus actually is. 12 short videos — do not skip this."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-74",
+        "title": "Calculus Volume 1",
+        "order": 10,
+        "is_required": true,
+        "note": "Limits, derivatives, and integration. The full university-level calculus textbook. Work through it with the Khan Academy AP Calculus AB course running in parallel."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-ap-calculus-ab",
+        "title": "AP Calculus AB",
+        "order": 11,
+        "is_required": true,
+        "note": "The structured Khan Academy calculus course — interactive exercises alongside the OpenStax textbook above. The combination of textbook depth and interactive practice is stronger than either alone."
+      }
+    ]
+  },
+
+  {
+    "title": "Math for Data and AI",
+    "short_description": "The specific mathematics that powers machine learning and data science — linear algebra, calculus, statistics, and probability.",
+    "full_description": "Not all mathematics is equally useful for data science and AI. This Combo targets the specific areas that machine learning actually uses: linear algebra (the language of data and neural networks), calculus (the engine of learning algorithms), statistics and probability (the framework for reasoning under uncertainty), and discrete mathematics (the logic behind algorithms and computation). Rather than covering all of mathematics, it goes deep on exactly what you need.",
+    "overview": "Linear algebra, calculus, statistics, and discrete maths — the mathematical core of machine learning.",
+    "who_is_this_for": "People preparing for the Think Like a Machine combo. Data scientists who want to understand the mathematics behind the tools they use. Engineers moving into ML roles. Anyone who wants to understand why machine learning works, not just how to run it.",
+    "learning_outcomes": [
+      "Perform matrix operations and understand vector spaces",
+      "Compute derivatives and understand gradient descent geometrically",
+      "Apply probability distributions and statistical inference to real problems",
+      "Reason about algorithms using discrete mathematics"
+    ],
+    "prerequisites": [
+      "Algebra and trigonometry — complete at least the first half of The Math Ladder combo",
+      "Comfortable with function notation and basic equations"
+    ],
+    "skills_gained": [
+      "Linear algebra (vectors, matrices, eigenvalues)",
+      "Multivariable calculus",
+      "Differential equations basics",
+      "Probability and statistics",
+      "Discrete mathematics",
+      "Mathematical reasoning for algorithms"
+    ],
+    "learning_path_explanation": "Linear algebra comes first because it is the most immediately applicable to machine learning — data is matrices, neural network layers are matrix multiplications, and embeddings are vectors. Statistics and probability next because they provide the framework for evaluating models and understanding uncertainty. Calculus third — specifically the parts relevant to optimisation and gradient-based learning. Discrete mathematics last because it is less immediately applied in ML but essential for reasoning about complexity, algorithms, and the theory of computation.",
+    "category": "Mathematics",
+    "sub_category": "Applied Mathematics",
+    "tags": ["linear algebra", "calculus", "statistics", "discrete mathematics", "machine learning", "data science", "AI"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 20,
+    "estimated_hours_per_week": 8,
+    "is_public": true,
+    "is_featured": false,
+    "courses": [
+      {
+        "provider": "YouTube",
+        "external_id": "PL49CF3715CB9EF31D",
+        "title": "Gilbert Strang lectures on Linear Algebra (MIT)",
+        "order": 1,
+        "is_required": true,
+        "note": "Gilbert Strang's legendary MIT linear algebra lectures. The gold standard for this subject. Watch every lecture and work the problems. This course alone is worth more than most university linear algebra courses."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-linear-algebra",
+        "title": "Linear Algebra",
+        "order": 2,
+        "is_required": true,
+        "note": "Khan Academy's linear algebra course. Use this for interactive practice alongside the MIT lectures above — the exercises reinforce what Strang explains."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-statistics-probability",
+        "title": "Statistics and Probability",
+        "order": 3,
+        "is_required": true,
+        "note": "Probability theory, distributions, hypothesis testing, and statistical inference. The framework for evaluating whether an ML model actually works."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-36",
+        "title": "Introductory Statistics",
+        "order": 4,
+        "is_required": false,
+        "note": "Optional textbook reference. Use it to go deeper on any statistics topic — particularly Bayesian reasoning and regression, which the Khan Academy course covers lightly."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-ap-calculus-ab",
+        "title": "AP Calculus AB",
+        "order": 5,
+        "is_required": true,
+        "note": "Derivatives and integrals — the mathematical engine behind gradient descent and backpropagation. If you have done calculus before, use this to refresh the specific parts relevant to optimisation."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-math-multivariable-calculus",
+        "title": "Multivariable Calculus",
+        "order": 6,
+        "is_required": true,
+        "note": "Partial derivatives, gradients, and optimisation in multiple dimensions. This is exactly what happens inside every training loop of a neural network."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLHXZ9OQGMqxersk8fUxiUMSIx0DBqsKZS",
+        "title": "Discrete Math (Full Course: Sets, Logic, Proofs, Probability, Graph Theory, etc)",
+        "order": 7,
+        "is_required": false,
+        "note": "Optional but valuable. Sets, logic, proofs, and graph theory — the mathematical language of algorithms. Particularly important if you are heading toward algorithm design or theoretical ML."
+      }
+    ]
+  },
+
+  {
+    "title": "The Physics Stack",
+    "short_description": "A rigorous progression through classical and modern physics — from mechanics to electromagnetism, with university-level depth.",
+    "full_description": "Physics is the science that every other physical science builds on. This Combo provides a complete university-level physics education using OpenStax textbooks — the standard used in universities worldwide — paired with video lectures from MIT and other sources. The progression follows the classical university sequence: mechanics first, then waves and thermodynamics, then electromagnetism, then modern physics. The AP Physics tracks are included for learners who want structured assessment alongside the textbook content.",
+    "overview": "University-level physics from mechanics to modern physics, using OpenStax textbooks throughout.",
+    "who_is_this_for": "Serious physics students — A-level and university level. Engineering students who need strong physics foundations. Anyone who wants to understand the physical world at a rigorous, mathematical level. Calculus background strongly recommended.",
+    "learning_outcomes": [
+      "Apply Newton's laws and classical mechanics to solve real problems",
+      "Understand waves, thermodynamics, and fluid mechanics",
+      "Analyse electric and magnetic fields and electromagnetic phenomena",
+      "Describe quantum mechanics and special relativity at an introductory level"
+    ],
+    "prerequisites": [
+      "AP Calculus AB level mathematics minimum — the OpenStax University Physics textbooks are calculus-based",
+      "Algebra-based physics background helpful but not required"
+    ],
+    "skills_gained": [
+      "Classical mechanics",
+      "Waves and thermodynamics",
+      "Electrostatics and circuits",
+      "Magnetism and electromagnetic induction",
+      "Optics",
+      "Modern physics and quantum mechanics introductory concepts",
+      "Problem-solving with calculus"
+    ],
+    "learning_path_explanation": "The University Physics three-volume sequence (OpenStax) is the spine of this combo. It follows the logical dependency of physics: mechanics before everything else, because force, work, and energy are the concepts every subsequent topic references. Waves and thermodynamics extend mechanics. Electromagnetism comes next — it requires both mechanics and calculus to fully understand. Modern physics is the final layer, building on all of it. The YouTube video lectures are recommended companions — seeing physics solved on a board is different from reading about it.",
+    "category": "Natural Sciences",
+    "sub_category": "Physics",
+    "tags": ["physics", "mechanics", "electromagnetism", "quantum", "university", "OpenStax", "calculus-based"],
+    "difficulty": "Advanced",
+    "recommended_age": "Adults",
+    "estimated_weeks": 28,
+    "estimated_hours_per_week": 10,
+    "is_public": true,
+    "is_featured": false,
+    "courses": [
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-ap-physics-1",
+        "title": "AP Physics 1",
+        "order": 1,
+        "is_required": true,
+        "note": "Algebra-based physics — kinematics, forces, energy, waves, and circuits. Start here if you are new to physics. If you have a strong physics background already, move to University Physics Volume 1 directly."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLNycEeeRg4mWslgmYTqWgmO2e9eE9GAtl",
+        "title": "College Physics 1",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional video lecture series. Useful as a visual companion to the AP Physics 1 content above."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-82",
+        "title": "University Physics Volume 1",
+        "order": 3,
+        "is_required": true,
+        "note": "Mechanics, waves, and thermodynamics. Calculus-based. This is the primary reference — work through the textbook and complete the end-of-chapter problems."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-ap-physics-2",
+        "title": "AP Physics 2",
+        "order": 4,
+        "is_required": true,
+        "note": "Fluid mechanics, thermodynamics, electromagnetism, optics, and modern physics at AP level. The structured exercise track to complement Volume 2 and 3."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-94",
+        "title": "University Physics Volume 2",
+        "order": 5,
+        "is_required": true,
+        "note": "Electrostatics, circuits, magnetism, and electromagnetic waves. More rigorous and calculus-based than AP Physics 2."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-95",
+        "title": "University Physics Volume 3",
+        "order": 6,
+        "is_required": true,
+        "note": "Optics, quantum mechanics, and modern physics. The final volume — covers where classical physics breaks down and quantum mechanics begins."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLFE3074A4CB751B2B",
+        "title": "Fundamentals of Physics with Ramamurti Shankar",
+        "order": 7,
+        "is_required": false,
+        "note": "Optional — Yale's legendary physics lecture series by Ramamurti Shankar. Excellent companion for University Physics Volumes 1 and 2. Shankar's explanations of the underlying physical reasoning are exceptional."
+      }
+    ]
+  },
+
+  {
+    "title": "Life Sciences Foundation",
+    "short_description": "A complete, university-level foundation in biology — from cells and genetics to ecology and anatomy.",
+    "full_description": "Biology sits at the intersection of chemistry, physics, and mathematics — and this Combo treats it that way. Using OpenStax biology textbooks (the same ones used in universities worldwide) paired with MIT's real lecture series, this path takes you from the chemistry of life through cell biology, genetics, evolution, ecology, and anatomy. It is structured for serious learners who want a genuine university-level biology education, not a surface survey.",
+    "overview": "From the chemistry of life to anatomy and ecology — a complete university-level biology education.",
+    "who_is_this_for": "Pre-med and biology students. Anyone preparing for A-level or university biology. Curious adults who want to understand how living things actually work at a molecular and cellular level.",
+    "learning_outcomes": [
+      "Explain biological processes from the molecular and cellular level upward",
+      "Understand genetics, inheritance, and evolutionary mechanisms",
+      "Describe how organ systems function and interact",
+      "Apply ecological principles to real-world biological systems"
+    ],
+    "prerequisites": [
+      "Basic chemistry is helpful — the biology here involves chemistry from the first chapter",
+      "AP Biology level or high school biology background recommended for the advanced track"
+    ],
+    "skills_gained": [
+      "Cell biology and biochemistry",
+      "Genetics and molecular biology",
+      "Evolution and natural selection",
+      "Ecology",
+      "Human anatomy and physiology",
+      "Scientific reasoning in biology"
+    ],
+    "learning_path_explanation": "Concepts of Biology provides the accessible entry point — it is designed for non-majors and covers the full scope without overwhelming chemistry prerequisites. Biology 2e is the full university major text, and it is where serious students spend most of their time. MIT's lecture series runs in parallel with the textbooks — watching how a research university professor explains the same material you are reading dramatically deepens retention. Anatomy and Physiology comes after the general biology courses because it requires cell biology and biochemistry as a foundation.",
+    "category": "Natural Sciences",
+    "sub_category": "Biology",
+    "tags": ["biology", "genetics", "cell biology", "anatomy", "ecology", "university", "OpenStax", "MIT"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 24,
+    "estimated_hours_per_week": 8,
+    "is_public": true,
+    "is_featured": false,
+    "courses": [
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-34",
+        "title": "Concepts of Biology",
+        "order": 1,
+        "is_required": true,
+        "note": "The accessible entry point. Covers the full scope of biology without the chemistry prerequisites of Biology 2e. Read this first to build the conceptual map before going deep."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-biology",
+        "title": "Biology",
+        "order": 2,
+        "is_required": true,
+        "note": "Khan Academy biology — interactive exercises across all core biology topics. Use this to test your understanding after reading each section of the OpenStax texts."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-207",
+        "title": "Biology 2e",
+        "order": 3,
+        "is_required": true,
+        "note": "The full university biology textbook. The primary reference for serious study — work through chapter by chapter, complete the review questions, and use the Khan Academy exercises above to self-test."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLUl4u3cNGP63LmSVIVzy584-ZbjbJ-Y63",
+        "title": "MIT 7.016 Introductory Biology, Fall 2018",
+        "order": 4,
+        "is_required": true,
+        "note": "Real MIT introductory biology lectures — covers biochemistry, genetics, and cell biology with the rigor of an actual university course. Watch these alongside the Biology 2e chapters they correspond to."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLF83B8D8C87426E44",
+        "title": "MIT 7.01SC Fundamentals of Biology",
+        "order": 5,
+        "is_required": false,
+        "note": "Optional additional MIT biology series. Particularly strong on molecular biology and biochemistry — watch if you want to go deeper on those specific areas."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-ap-biology",
+        "title": "AP Biology",
+        "order": 6,
+        "is_required": false,
+        "note": "Optional structured assessment track. Use to test yourself at AP level across all the biology you have covered."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-585",
+        "title": "Anatomy and Physiology 2e",
+        "order": 7,
+        "is_required": false,
+        "note": "Optional but strongly recommended if you are heading toward medicine or health sciences. Requires the cell biology and biochemistry from earlier in this combo."
+      }
+    ]
+  },
+
+  {
+    "title": "Chemistry: From Atoms to Reactions",
+    "short_description": "A complete university-level chemistry education — atomic structure, bonding, reactions, stoichiometry, and beyond.",
+    "full_description": "Chemistry is the science of matter and transformation. This Combo builds a complete university-level chemistry education using OpenStax chemistry textbooks — the standard used in universities worldwide — paired with YouTube lecture series for visual learners. The path covers general chemistry fully before moving into organic chemistry, following the same sequence used in university chemistry programmes. Throughout, the emphasis is on understanding why reactions happen, not just memorising what happens.",
+    "overview": "Atomic theory through organic chemistry — a complete, properly sequenced university chemistry education.",
+    "who_is_this_for": "Pre-med, pharmacy, and chemistry students. Anyone preparing for university chemistry or A-level chemistry. Curious adults who want to understand the physical world at the molecular level.",
+    "learning_outcomes": [
+      "Explain atomic structure, bonding, and molecular geometry",
+      "Perform stoichiometric calculations and understand chemical equilibrium",
+      "Predict the behaviour of acids, bases, and salts in solution",
+      "Understand thermodynamics and electrochemistry",
+      "Apply organic chemistry principles to naming, reactions, and mechanisms"
+    ],
+    "prerequisites": [
+      "High school level algebra — calculations in chemistry require it",
+      "Basic physics is helpful for thermodynamics and electrochemistry sections"
+    ],
+    "skills_gained": [
+      "Atomic theory and periodic trends",
+      "Chemical bonding and molecular geometry",
+      "Stoichiometry and molar calculations",
+      "Chemical equilibrium",
+      "Acid-base chemistry",
+      "Thermodynamics",
+      "Electrochemistry",
+      "Organic chemistry fundamentals"
+    ],
+    "learning_path_explanation": "General chemistry before organic chemistry — always. Organic chemistry requires a solid foundation in bonding, electron behaviour, and thermodynamics that general chemistry provides. Within general chemistry, the Atoms First approach (Chemistry: Atoms First 2e) is used because starting with atomic structure and building up to bulk properties is more conceptually coherent than the traditional approach. The YouTube chemistry series provide video lecture companions — watching reactions and mechanisms explained visually is a different kind of learning than reading about them.",
+    "category": "Natural Sciences",
+    "sub_category": "Chemistry",
+    "tags": ["chemistry", "general chemistry", "organic chemistry", "university", "OpenStax", "reactions", "stoichiometry"],
+    "difficulty": "Intermediate",
+    "recommended_age": "Adults",
+    "estimated_weeks": 26,
+    "estimated_hours_per_week": 9,
+    "is_public": true,
+    "is_featured": false,
+    "courses": [
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-chemistry",
+        "title": "Chemistry",
+        "order": 1,
+        "is_required": true,
+        "note": "Khan Academy chemistry — structured interactive exercises across all general chemistry topics. Use this as your exercise layer while reading the OpenStax text."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-299",
+        "title": "Chemistry: Atoms First 2e",
+        "order": 2,
+        "is_required": true,
+        "note": "The primary general chemistry textbook. The Atoms First approach is more conceptually coherent — it builds from atomic structure outward rather than from macroscopic observations inward. Work through every chapter."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLybg94GvOJ9EbbO2RXPWTUNIIE0C7hSfm",
+        "title": "General Chemistry",
+        "order": 3,
+        "is_required": false,
+        "note": "Optional video lecture series. Covers the same material as the OpenStax text — use it to preview chapters before reading or to revisit topics that are not clicking."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-science-ap-chemistry",
+        "title": "AP Chemistry",
+        "order": 4,
+        "is_required": false,
+        "note": "Optional structured assessment. Test yourself at AP level across all general chemistry topics before moving to organic chemistry."
+      },
+      {
+        "provider": "OpenStax",
+        "external_id": "openstax-707",
+        "title": "Organic Chemistry: A Tenth Edition",
+        "order": 5,
+        "is_required": true,
+        "note": "The organic chemistry textbook — functional groups, reaction mechanisms, stereochemistry, and synthesis. Start only after completing general chemistry. The conceptual leap is significant and requires the foundation."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLs_zr2aUQP3j3WehOKk669_1vw7axpxPI",
+        "title": "Organic Chemistry 1",
+        "order": 6,
+        "is_required": false,
+        "note": "Optional video companion for the organic chemistry textbook. Mechanisms and reactions are much easier to follow when you can watch them being drawn step by step."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PL0o_zxa4K1BWziAvOKdqsMFSB_MyyLAqS",
+        "title": "New AP & General Chemistry Video Playlist",
+        "order": 7,
+        "is_required": false,
+        "note": "Optional broader reference playlist. Covers both AP and general chemistry — useful for review and catching gaps."
+      }
+    ]
+  },
+
+  {
+    "title": "Intro to Computer Science — No Experience Needed",
+    "short_description": "What computers are, how they think, and how to make them do what you want — a proper introduction for complete beginners.",
+    "full_description": "This Combo is the right starting point for anyone who wants to understand computing but does not know where to begin. It opens with how computers fundamentally work — not as magic boxes but as logical machines — then introduces programming through Khan Academy's structured computer programming track, then steps up to a real university introduction to CS with Stanford's CS105. By the end, you will have a genuine conceptual foundation and your first programming experience, making every other CS combo on this platform accessible.",
+    "overview": "How computers work, how to program, and why it all matters — for complete beginners.",
+    "who_is_this_for": "Complete beginners to computing and programming. People who use computers every day but do not understand what is happening underneath. Students choosing between STEM subjects. Adults considering a career change into tech.",
+    "learning_outcomes": [
+      "Explain how computers represent, store, and process information",
+      "Write basic programs using fundamental programming concepts",
+      "Understand what software is and how it relates to hardware",
+      "Have the foundation to continue into any specialist CS combo"
+    ],
+    "prerequisites": [
+      "No prior experience required — this is the starting point"
+    ],
+    "skills_gained": [
+      "Computational thinking",
+      "Computer fundamentals",
+      "Basic programming concepts",
+      "Binary and data representation",
+      "How software and hardware relate",
+      "First programming experience"
+    ],
+    "learning_path_explanation": "The fundamentals courses come before the programming track because programming makes far more sense when you understand what the machine is actually doing. The Stanford CS105 course is placed last because it is the most comprehensive and academic — it is more rewarding when you already have some programming experience and conceptual grounding from the earlier courses.",
+    "category": "Computer Science",
+    "sub_category": "Computer Fundamentals",
+    "tags": ["beginner", "computer science", "programming", "fundamentals", "intro", "no experience"],
+    "difficulty": "Beginner",
+    "recommended_age": "Teens",
+    "estimated_weeks": 10,
+    "estimated_hours_per_week": 5,
+    "is_public": true,
+    "is_featured": false,
+    "courses": [
+      {
+        "provider": "YouTube",
+        "external_id": "PLaby_qCosu65mkZjvDPeqvTccdpgT5qJn",
+        "title": "fundamentals of computers and computational thinking",
+        "order": 1,
+        "is_required": true,
+        "note": "Start here. How computers represent data, process instructions, and execute programs. Builds the mental model everything else depends on."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLzdnOPI1iJNcvzsEOQPT1ZgDoOY6OAvGE",
+        "title": "Computer Science Fundamental Tutorials",
+        "order": 2,
+        "is_required": false,
+        "note": "Optional supplement — broader fundamentals coverage. Watch sections on data structures and binary if they are not covered fully in step 1."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-computing-computer-programming",
+        "title": "Computer Programming",
+        "order": 3,
+        "is_required": true,
+        "note": "Your first programming experience — Khan Academy's structured programming track. Interactive, visual, and genuinely beginner-friendly. Complete all exercises."
+      },
+      {
+        "provider": "MIT OCW",
+        "external_id": "ka-computing-ap-computer-science-principles",
+        "title": "AP Computer Science Principles",
+        "order": 4,
+        "is_required": false,
+        "note": "Optional for those who want a more structured academic CS track. Covers the breadth of computing — algorithms, data, the internet, security — at AP level."
+      },
+      {
+        "provider": "YouTube",
+        "external_id": "PLoROMvodv4rPzLcXBhbCFt8ahPrQGFSmN",
+        "title": "Stanford CS105 - Introduction to Computers Full Course",
+        "order": 5,
+        "is_required": true,
+        "note": "The capstone of this combo. Stanford's full introduction to computing — covers how computing devices work, their limitations and strengths, and practical web development skills. More comprehensive and academic than the earlier courses."
+      }
+    ]
+  }
+]

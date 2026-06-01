@@ -1,0 +1,17 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-allauth
+psycopg2-binary
+celery
+redis
+django-celery-beat
+pydantic
+requests
+python-decouple
+sentry-sdk[django]
+posthog
+django-cors-headers
+Pillow
+cryptography
+google-auth
