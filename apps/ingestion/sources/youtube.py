@@ -14,6 +14,15 @@ Quota budget per run (default):
 - Remaining budget used for playlist detail calls (1 unit each)
 - Conservative default: 10 queries per run to leave headroom for other systems.
 
+Changes from Phase 3:
+- _item_to_raw_course() now extracts defaultAudioLanguage and defaultLanguage
+  from the snippet and stores them in raw_payload under 'audio_language' and
+  'default_language'. These are passed to the normalizer's language detection
+  pipeline via the RawCourse.language field and raw_payload.
+- defaultAudioLanguage is preferred over defaultLanguage because it reflects
+  the actual spoken language of the content, not just the metadata language.
+  YouTube populates this field when the channel owner tags their audio language.
+
 Rule 2: Every fallback is documented with full comment block.
 Rule 8: Every fetch step is logged.
 Rule 14: This file fetches only — normalizer handles transformation.
@@ -172,7 +181,8 @@ class YouTubeIngestionSource(BaseIngestionSource):
                 playlist_ids.extend(new_ids)
 
                 logger.debug(
-                    "YouTubeIngestionSource._search_playlists: query='%s' → %d results (%d new)",
+                    "YouTubeIngestionSource._search_playlists: "
+                    "query='%s' → %d results (%d new)",
                     query,
                     len(ids),
                     len(new_ids),
@@ -240,7 +250,6 @@ class YouTubeIngestionSource(BaseIngestionSource):
         """
         raw_courses: list[RawCourse] = []
 
-        # Batch into groups of 50 (YouTube API limit per request)
         batch_size = 50
         batches = [
             playlist_ids[i : i + batch_size]
@@ -281,6 +290,8 @@ class YouTubeIngestionSource(BaseIngestionSource):
         Fetch details for a batch of up to 50 playlist IDs.
 
         Calls playlists.list with snippet and contentDetails parts.
+        snippet already contains defaultAudioLanguage and defaultLanguage
+        — no additional API part or quota cost is needed to get these fields.
         Costs 1 quota unit per call regardless of IDs in the batch.
 
         Rule 9: Builds RawCourse objects only — no DB writes, no events.
@@ -288,6 +299,8 @@ class YouTubeIngestionSource(BaseIngestionSource):
         params = {
             "key": api_key,
             "id": ",".join(playlist_ids),
+            # snippet contains: title, description, channelTitle, thumbnails,
+            # defaultLanguage, defaultAudioLanguage — all retrieved in one call.
             "part": "snippet,contentDetails",
         }
 
@@ -312,8 +325,20 @@ class YouTubeIngestionSource(BaseIngestionSource):
         Convert a single YouTube playlist API item into a RawCourse.
 
         Returns None if required fields are missing (malformed API response).
-        The normalizer handles all value transformation — this method preserves
-        the original values verbatim except for type coercions.
+
+        Language field resolution order:
+          1. defaultAudioLanguage — reflects the actual spoken language of the
+             content. Most reliable signal. Set by channel owners who tag their
+             audio language in YouTube Studio.
+          2. defaultLanguage — the language of the playlist's metadata (title
+             and description). Less reliable than audio language.
+          3. Empty string — not set by the channel owner. The normalizer will
+             treat this as unknown and apply the thin-content penalty if the
+             title and description are also uninformative.
+
+        Both audio_language and default_language are stored in raw_payload so
+        the normalizer's language pipeline can access them directly from
+        source_metadata after ingestion.
 
         Rule 9: No hidden logic — extraction only, no business decisions.
         Rule 13: Explicit over clever — direct field access, no magic.
@@ -346,6 +371,32 @@ class YouTubeIngestionSource(BaseIngestionSource):
         item_count = content_details.get("itemCount", 0)
         source_url = f"https://www.youtube.com/playlist?list={playlist_id}"
 
+        # ── Language metadata extraction ──────────────────────────────────────
+        # Both fields live in snippet and are already returned by the API call
+        # above — no additional quota cost.
+        #
+        # defaultAudioLanguage: the spoken/audio language of the playlist content.
+        #   YouTube uses BCP-47 tags e.g. 'en', 'hi', 'ar', 'ur'.
+        #   Not all channel owners set this — absence means unknown, not English.
+        #
+        # defaultLanguage: the language of the playlist title and description.
+        #   Less useful for our purpose but stored as a secondary signal.
+        audio_language = snippet.get("defaultAudioLanguage", "") or ""
+        default_language = snippet.get("defaultLanguage", "") or ""
+
+        # Pass the most reliable language signal as the RawCourse.language field.
+        # The normalizer reads this as Layer 1 of the language detection pipeline.
+        # Preference: audio > default > empty (unknown).
+        raw_language = audio_language or default_language or ""
+
+        logger.debug(
+            "YouTubeIngestionSource._item_to_raw_course: "
+            "playlist_id=%s audio_language='%s' default_language='%s'",
+            playlist_id,
+            audio_language,
+            default_language,
+        )
+
         return self._build_raw_course(
             external_id=playlist_id,
             title=title,
@@ -355,9 +406,8 @@ class YouTubeIngestionSource(BaseIngestionSource):
             provider=YOUTUBE_PROVIDER,
             instructor=channel_title,
             thumbnail_url=thumbnail_url,
+            language=raw_language,    # Now carries actual audio/metadata language
             format="Video",
-            # Category and level are left blank — normalizer applies heuristics
-            # based on title and description keywords.
             category="",
             level="",
             age_group="",
@@ -367,5 +417,10 @@ class YouTubeIngestionSource(BaseIngestionSource):
                 "snippet": snippet,
                 "content_details": content_details,
                 "item_count": item_count,
+                # Stored explicitly for direct access in source_metadata
+                # after ingestion — used by flag_language_status command
+                # when re-screening existing courses.
+                "audio_language": audio_language,
+                "default_language": default_language,
             },
         )

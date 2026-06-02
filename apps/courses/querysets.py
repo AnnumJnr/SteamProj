@@ -4,17 +4,33 @@ Course querysets.
 All database query logic for the Course model lives here.
 This includes filtering, search, and ordering — never in views or services.
 
+Changes from Phase 2:
+- get_active() now also filters on language_status.
+  Courses with language_status=rejected are excluded from all public listings.
+  Courses with language_status=unknown or accepted remain visible.
+  Courses with language_status=flagged remain visible (human review pending —
+  we do not hide them automatically because the detection may be wrong).
+
 Rule 4: Query logic must be centralized.
 """
 
 import logging
 
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import QuerySet
 
 from apps.courses.models import Course
 
 logger = logging.getLogger(__name__)
+
+# Statuses that are visible in the public catalog.
+# UNKNOWN and ACCEPTED are visible. FLAGGED is visible (pending human review).
+# REJECTED is excluded — confident non-English, hidden from catalog.
+PUBLIC_LANGUAGE_STATUSES = [
+    Course.LanguageStatus.UNKNOWN,
+    Course.LanguageStatus.ACCEPTED,
+    Course.LanguageStatus.FLAGGED,
+]
 
 
 class CourseQueryset:
@@ -24,22 +40,41 @@ class CourseQueryset:
 
     @staticmethod
     def get_active() -> QuerySet:
-        """Return all active courses ordered by title."""
-        return Course.objects.filter(is_active=True).order_by("title")
+        """
+        Return all active, language-eligible courses ordered by title.
+
+        Excludes:
+          - is_active=False   (course gone from source platform)
+          - language_status=rejected (confident non-English)
+
+        Does NOT exclude language_status=flagged — flagged courses are
+        still visible while awaiting human review. This is intentional:
+        the detection pipeline may produce false positives, and we do not
+        want to silently hide potentially valid English courses from users
+        before a human has confirmed the rejection.
+        """
+        return Course.objects.filter(
+            is_active=True,
+            language_status__in=PUBLIC_LANGUAGE_STATUSES,
+        ).order_by("title")
 
     @staticmethod
     def get_by_id(course_id) -> Course | None:
-        """Return an active course by primary key, or None if not found."""
+        """Return an active, language-eligible course by primary key, or None."""
         try:
-            return Course.objects.get(pk=course_id, is_active=True)
+            return Course.objects.get(
+                pk=course_id,
+                is_active=True,
+                language_status__in=PUBLIC_LANGUAGE_STATUSES,
+            )
         except Course.DoesNotExist:
             return None
 
     @staticmethod
     def get_by_id_any_status(course_id) -> Course | None:
         """
-        Return a course by primary key regardless of active status.
-        Used in admin/ingestion contexts only.
+        Return a course by primary key regardless of active or language status.
+        Used in admin and ingestion contexts only — not for public-facing queries.
         """
         try:
             return Course.objects.get(pk=course_id)
@@ -87,7 +122,6 @@ class CourseQueryset:
         if not query:
             return queryset
 
-        # Primary: PostgreSQL full-text search via tsvector
         search_query = SearchQuery(query, search_type="websearch")
         qs_fts = queryset.filter(search_vector=search_query).annotate(
             rank=SearchRank("search_vector", search_query)
@@ -98,7 +132,7 @@ class CourseQueryset:
 
         # FALLBACK: icontains on title if search_vector not yet populated
         # PRIMARY: apps/courses/querysets.py → CourseQueryset.search()
-        # CONDITION: search_vector is null or the FTS query returns no results
+        # CONDITION: search_vector is null or FTS returns no results
         # THRESHOLD: Not applicable — icontains is an acceptable search degradation
         logger.warning(
             "CourseQueryset.search: FTS returned no results for '%s'. "
@@ -119,6 +153,7 @@ class CourseQueryset:
         """
         Entry point for all course listing/search queries from the API.
         Chains filters and search on top of the active base queryset.
+        language_status filtering is applied at the get_active() level.
 
         MULTI-USE: Used by CourseListView and combo course pickers.
         """
@@ -143,10 +178,14 @@ class CourseQueryset:
     def get_by_combo(combo_id) -> QuerySet:
         """
         Return courses belonging to a specific combo, ordered by their position.
-        Used in combo detail views to list courses in order.
+        Only returns active, language-eligible courses.
         """
         return (
-            Course.objects.filter(combo_courses__combo_id=combo_id, is_active=True)
+            Course.objects.filter(
+                combo_courses__combo_id=combo_id,
+                is_active=True,
+                language_status__in=PUBLIC_LANGUAGE_STATUSES,
+            )
             .order_by("combo_courses__order")
             .select_related()
         )
