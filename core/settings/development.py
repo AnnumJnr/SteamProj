@@ -12,7 +12,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # Use console email backend in development — no real emails sent
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 
 # Django Debug Toolbar — active in dev only
 INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
