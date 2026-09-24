@@ -3,11 +3,23 @@
  * Site footer. Static content — no data fetching, no auth state.
  */
 
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PageContainer } from "./PageContainer";
 import { ROUTES } from "@/constants/routes";
 
+// Auth pages render a self-contained full-height layout; see Navbar's BARE_ROUTES.
+const BARE_ROUTES: string[] = [ROUTES.LOGIN, ROUTES.REGISTER];
+
 export function Footer() {
+  const pathname = usePathname();
+
+  if (BARE_ROUTES.includes(pathname)) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-surface-border bg-surface-base mt-auto">
       <PageContainer>

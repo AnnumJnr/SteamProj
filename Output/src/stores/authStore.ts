@@ -21,12 +21,16 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  // False until persist has read localStorage. Auth-dependent UI must wait for
+  // this, or it renders the logged-out state for a frame before rehydration.
+  hasHydrated: boolean;
 
   setAuth: (user: User, tokens: TokenPair) => void;
   setUser: (user: User) => void;
   setTokens: (tokens: TokenPair) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
+  setHasHydrated: (hydrated: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -37,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
 
       setAuth: (user, tokens) => {
         set({
@@ -66,6 +71,8 @@ export const useAuthStore = create<AuthState>()(
         }),
 
       setLoading: (loading) => set({ isLoading: loading }),
+
+      setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
     }),
     {
       name: "stempath-auth",
@@ -76,6 +83,9 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
