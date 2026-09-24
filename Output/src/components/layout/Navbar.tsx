@@ -26,8 +26,13 @@ const NAV_LINKS = [
   { label: "Combo Paths", href: ROUTES.COMBOS },
 ];
 
+// Routes that render their own minimal header in app/(auth)/layout.tsx.
+// Nested layouts nest inside the root layout rather than replacing it, so this
+// bar has to opt out here or both headers stack.
+const BARE_ROUTES: string[] = [ROUTES.LOGIN, ROUTES.REGISTER];
+
 export function Navbar() {
-  const { user, isAuthenticated, clearAuth } = useAuth();
+  const { user, isAuthenticated, hasHydrated, clearAuth } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,6 +53,10 @@ export function Navbar() {
       clearAuth();
       router.push(ROUTES.HOME);
     }
+  }
+
+  if (BARE_ROUTES.includes(pathname)) {
+    return null;
   }
 
   return (
@@ -102,7 +111,11 @@ export function Navbar() {
               </svg>
             </Link>
 
-            {isAuthenticated && user ? (
+            {!hasHydrated ? (
+              // Reserve the slot until localStorage is read, so a logged-in user
+              // never sees Log in / Sign up flash before their avatar appears.
+              <div className="w-[7.5rem] h-8" aria-hidden="true" />
+            ) : isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

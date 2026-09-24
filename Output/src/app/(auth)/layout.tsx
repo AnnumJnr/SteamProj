@@ -1,9 +1,12 @@
 /**
  * app/(auth)/layout.tsx
- * Auth route group layout.
- * Overrides the root layout's Navbar/Footer for a clean centered auth experience.
+ * Auth route group layout — minimal logo header, centered content.
  * The (auth) folder name with parentheses is a Next.js route group —
  * it does NOT appear in the URL. /login and /register are the resulting paths.
+ *
+ * This layout nests INSIDE the root layout; it cannot override it. The root
+ * Navbar and Footer opt out of these routes themselves (see BARE_ROUTES in
+ * components/layout/Navbar.tsx), which is what keeps the header from doubling.
  */
 
 import type { Metadata } from "next";

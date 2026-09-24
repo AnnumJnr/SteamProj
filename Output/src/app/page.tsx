@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { ROUTES } from "@/constants/routes";
 import { FeaturedCombos } from "@/components/combo/FeaturedCombos";
 import { FeaturedCourses } from "@/components/course/FeaturedCourses";
-import { CategoryStrip } from "@/components/shared/CategoryStrip";
+import { HomeCTA } from "@/components/shared/HomeCTA";
 import { LoadingState } from "@/components/shared/LoadingState";
 
 // ─── STEM Category icons (inline SVG) ─────────────────────────────────────
@@ -228,20 +228,7 @@ export default function HomePage() {
               <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/10 blur-2xl" />
             </div>
             <div className="relative max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-text-primary mb-3">
-                Ready to start learning?
-              </h2>
-              <p className="text-text-secondary mb-6 leading-relaxed">
-                Create a free account and track your progress across every course and Combo path.
-              </p>
-              <div className="flex items-center gap-3 justify-center flex-wrap">
-                <Link href={ROUTES.REGISTER}>
-                  <Button size="lg">Get started free</Button>
-                </Link>
-                <Link href={ROUTES.COURSES}>
-                  <Button size="lg" variant="ghost">Explore without signing up</Button>
-                </Link>
-              </div>
+              <HomeCTA />
             </div>
           </div>
         </PageContainer>

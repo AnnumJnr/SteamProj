@@ -16,6 +16,7 @@ export function useAuth() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const setAuth = useAuthStore((s) => s.setAuth);
   const setUser = useAuthStore((s) => s.setUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
@@ -26,6 +27,7 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     accessToken,
+    hasHydrated,
     setAuth,
     setUser,
     clearAuth,
