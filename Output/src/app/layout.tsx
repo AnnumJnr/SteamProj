@@ -27,6 +27,30 @@ const dmSerifDisplay = DM_Serif_Display({
   display: "swap",
 });
  
+/**
+ * Runs before first paint, so the correct palette is on <html> by the time
+ * anything renders. A React effect cannot do this — effects run after paint,
+ * which is exactly what produces the white flash on a dark-mode reload.
+ * The storage key must stay in sync with THEME_STORAGE_KEY in hooks/useTheme.ts.
+ */
+const themeScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem("stempath-theme");
+    var resolved =
+      stored === "light" || stored === "dark"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: light)").matches
+          ? "light"
+          : "dark";
+    document.documentElement.dataset.theme = resolved;
+    document.documentElement.style.colorScheme = resolved;
+  } catch (e) {
+    // Storage blocked — fall back to the dark palette already in the stylesheet.
+  }
+})();
+`;
+
 export const metadata: Metadata = {
   title: {
     default: "STEMPath — Guided STEM Learning Paths",
@@ -53,6 +77,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${dmSans.variable} ${dmSerifDisplay.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Providers>
           <div className="flex flex-col min-h-dvh">

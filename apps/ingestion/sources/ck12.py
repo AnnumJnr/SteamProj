@@ -1,18 +1,25 @@
 """
-CK-12 ingestion source — REPLACED with OER Commons API.
+CK-12 ingestion source — CURRENTLY NON-FUNCTIONAL. Needs a replacement provider.
 
-The original CK-12 implementation returned HTTP 403 Forbidden on all requests.
-CK-12 does not have a publicly accessible API. Their api.ck12.org endpoint
-requires authentication/registration that is not publicly available.
+History:
+1. The original CK-12 implementation returned HTTP 403 on all requests. CK-12
+   has no publicly accessible API; api.ck12.org requires private registration.
+2. It was then rewritten against the OER Commons API (oercommons.org/api/1.0).
+   That endpoint is also dead: www.oercommons.org 302-redirects to
+   oercommons.org, and /api/1.0/search returns HTTP 404. Verified 2026-09-24.
 
-Replacement: OER Commons (oercommons.org) provides a fully public REST API
-for open educational resources, with strong K-12 STEM coverage. It is:
-- Publicly accessible with no API key required
-- Returns structured JSON with title, description, subjects, grade levels
-- Covers the same K-12 STEM content gap that CK-12 was intended to fill
-- CC-licensed content throughout
+Consequence: this source yields zero courses on every run, leaving the
+platform with no K-12 coverage — a gap that matters because the project vision
+commits to serving "kids to adults".
 
-API documentation: https://www.oercommons.org/api/1.0/
+Choosing the replacement is a spec-level decision, not an implementation
+detail: master reference section 2 enumerates the approved sources and forbids
+scraping, so a new provider must be agreed and the master reference updated
+before it is built here.
+
+What was fixed in the meantime: fetch() previously returned success=True with
+zero courses when every request failed, so IngestionLog recorded "success" and
+nothing surfaced the breakage. It now reports failure (Rule 2).
 
 We keep the source registered under the 'ck12' key in IngestionLog.Source
 (which already exists in the DB schema) to avoid a migration. The provider
@@ -157,10 +164,43 @@ class Ck12IngestionSource(BaseIngestionSource):
             len(raw_courses),
         )
 
+        # Rule 2: a run where every subject failed is a failure, not a success
+        # with zero results. Reporting success here is what let this source sit
+        # broken while IngestionLog kept recording "success / 0 courses".
+        if skipped_subjects == len(STEM_SUBJECTS):
+            error_message = (
+                f"All {skipped_subjects} subject requests failed. The OER Commons "
+                f"endpoint ({OER_API_BASE}) is unreachable — it currently returns "
+                f"HTTP 404. This source needs a replacement provider."
+            )
+            logger.error("Ck12IngestionSource.fetch: %s", error_message)
+            return FetchResult(
+                source=self.source_name,
+                courses=[],
+                success=False,
+                error_message=error_message,
+                raw_count=0,
+            )
+
+        # FALLBACK: Continue with partial results when only some subjects failed
+        # PRIMARY: apps/ingestion/sources/ck12.py → _fetch_subject_resources()
+        # CONDITION: At least one, but not all, subject requests failed
+        # ACTION: Return the subjects that succeeded, flagged for IngestionLog
+        # THRESHOLD: 3 consecutive triggers OR 5 within 24 hours → investigate primary
+        fallback_triggered = skipped_subjects > 0
+        fallback_reason = (
+            f"{skipped_subjects} of {len(STEM_SUBJECTS)} subject requests failed; "
+            f"returning partial results."
+            if fallback_triggered
+            else ""
+        )
+
         return FetchResult(
             source=self.source_name,
             courses=raw_courses,
             success=True,
+            fallback_triggered=fallback_triggered,
+            fallback_reason=fallback_reason,
             raw_count=total_raw,
         )
 
