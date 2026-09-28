@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { PageContainer } from "./PageContainer";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
@@ -110,6 +111,8 @@ export function Navbar() {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </Link>
+
+            <ThemeToggle />
 
             {!hasHydrated ? (
               // Reserve the slot until localStorage is read, so a logged-in user

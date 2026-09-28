@@ -11,6 +11,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ROUTES } from "@/constants/routes";
 
 export const metadata: Metadata = {
@@ -27,8 +28,9 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-dvh flex flex-col bg-surface-base">
-      {/* Minimal header — logo only */}
-      <header className="flex-shrink-0 px-6 py-4 border-b border-surface-border">
+      {/* Minimal header — logo, plus the theme toggle the hidden Navbar would
+          otherwise have provided (see BARE_ROUTES in Navbar.tsx). */}
+      <header className="flex-shrink-0 px-6 py-4 border-b border-surface-border flex items-center justify-between">
         <Link href={ROUTES.HOME} className="inline-flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,6 +43,8 @@ export default function AuthLayout({
             STEM<span className="text-primary">Path</span>
           </span>
         </Link>
+
+        <ThemeToggle />
       </header>
 
       {/* Centered content */}
