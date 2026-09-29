@@ -23,13 +23,14 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useCourse } from "@/hooks/useCourses";
-import { useCompleteCourse, useStartCourse, useUnenrollCourse } from "@/hooks/useProgress";
+import { useCompleteCourse, useCourseProgress, useStartCourse, useUnenrollCourse } from "@/hooks/useProgress";
 import { useSaveCourse, useSavedCourses, useUnsaveCourse } from "@/hooks/useSavedItems";
 import { useAuth } from "@/hooks/useAuth";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { ROUTES } from "@/constants/routes";
@@ -39,16 +40,26 @@ export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useAuth();
   const { data: course, isLoading, isError, refetch } = useCourse(id);
+  const { data: courseProgress } = useCourseProgress(id, isAuthenticated);
   const { mutate: startCourse, isPending: isStarting } = useStartCourse();
   const { mutate: completeCourse, isPending: isCompleting } = useCompleteCourse();
   const { mutate: unenrollCourse, isPending: isUnenrolling } = useUnenrollCourse();
   const { mutate: saveCourse, isPending: isSaving } = useSaveCourse();
   const { mutate: unsaveCourse, isPending: isUnsaving } = useUnsaveCourse();
-  const { data: savedCoursesData } = useSavedCourses();
+  const { data: savedCoursesData } = useSavedCourses(isAuthenticated);
+  const [showUnenrollModal, setShowUnenrollModal] = useState(false);
+  const [hasStartedLocally, setHasStartedLocally] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
  
   // Check saved status using course id directly
   const isSaved = savedCoursesData?.results?.some((s) => s.course.id === id) ?? false;
+  const hasActiveProgress = Boolean(courseProgress);
+  const hasStarted = hasActiveProgress || hasStartedLocally;
+  const isCompleted = courseProgress?.status === "completed";
+
+  useEffect(() => {
+    setHasStartedLocally(Boolean(courseProgress));
+  }, [courseProgress]);
  
   useEffect(() => {
     if (!course) return;
@@ -205,22 +216,36 @@ export default function CourseDetailPage() {
                 )}
  
                 <div className="space-y-2 pt-2 border-t border-surface-border">
-                  {/* FALLBACK: Open on provider link is the fallback when YouTube embed is blocked */}
-                  <a href={course.source_url} target="_blank" rel="noopener noreferrer" className="block">
-                    <Button fullWidth variant="primary">Open on {course.provider} &#8599;</Button>
-                  </a>
- 
                   {isAuthenticated ? (
                     <>
-                      <Button fullWidth variant="secondary" isLoading={isStarting}
-                        onClick={() => startCourse(id, { onSuccess: () => showMessage("Course marked as started") })}>
-                        Mark as Started
-                      </Button>
- 
-                      <Button fullWidth variant="secondary" isLoading={isCompleting}
-                        onClick={() => completeCourse(id, { onSuccess: () => showMessage("Course marked as complete") })}>
-                        Mark as Complete
-                      </Button>
+                      {hasStarted ? (
+                        <a href={course.source_url} target="_blank" rel="noopener noreferrer" className="block">
+                          <Button fullWidth variant="primary">Visit course &#8599;</Button>
+                        </a>
+                      ) : (
+                        <Button fullWidth variant="secondary" isLoading={isStarting}
+                          onClick={() => startCourse(id, {
+                            onSuccess: () => {
+                              setHasStartedLocally(true);
+                              showMessage("Course started");
+                            },
+                            onError: () => showMessage("Could not start this course. Please try again."),
+                          })}>
+                          Start course
+                        </Button>
+                      )}
+
+                      {hasStarted && (
+                        <Button fullWidth variant={isCompleted ? "ghost" : "secondary"}
+                          disabled={isCompleted}
+                          isLoading={isCompleting}
+                          onClick={() => completeCourse(id, {
+                            onSuccess: () => showMessage("Course marked as complete"),
+                            onError: () => showMessage("Could not complete this course. Please try again."),
+                          })}>
+                          {isCompleted ? "Completed" : "Mark as Complete"}
+                        </Button>
+                      )}
  
                       {/* Save / Unsave — passes course ID directly */}
                       <Button fullWidth variant="ghost" isLoading={isSaving || isUnsaving}
@@ -241,12 +266,13 @@ export default function CourseDetailPage() {
                         )}
                       </Button>
  
-                      {/* Unenroll — removes all progress for this course */}
-                      <Button fullWidth variant="ghost" isLoading={isUnenrolling}
-                        onClick={() => unenrollCourse(id, { onSuccess: () => showMessage("Unenrolled from course") })}
-                        className="text-danger hover:text-danger border border-transparent hover:border-danger/30">
-                        Unenroll from course
-                      </Button>
+                      {hasActiveProgress && (
+                        <Button fullWidth variant="ghost"
+                          onClick={() => setShowUnenrollModal(true)}
+                          className="text-danger hover:text-danger border border-transparent hover:border-danger/30">
+                          Unenroll from course
+                        </Button>
+                      )}
                     </>
                   ) : (
                     <Link href={ROUTES.LOGIN}>
@@ -267,6 +293,37 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={showUnenrollModal}
+        onClose={() => setShowUnenrollModal(false)}
+        title="Unenroll from course"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary">
+            This will pause the course and remove it from your active progress. Your learning history will be preserved.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setShowUnenrollModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              isLoading={isUnenrolling}
+              onClick={() => unenrollCourse(id, {
+                onSuccess: () => {
+                  setHasStartedLocally(false);
+                  setShowUnenrollModal(false);
+                  showMessage("Course paused");
+                },
+              })}
+            >
+              Unenroll
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </PageContainer>
   );
 }

@@ -27,20 +27,19 @@ export function useCombo(id: string) {
   });
 }
  
-export function useMyCombos() {
+export function useMyCombos(enabled = true) {
   return useQuery({
     queryKey: queryKeys.combos.mine,
     queryFn: comboService.getMyCombos,
+    enabled,
   });
 }
  
-export function useComboProgress(id: string) {
+export function useComboProgress(id: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.combos.progress(id),
     queryFn: () => comboService.getComboProgress(id),
-    enabled: Boolean(id),
-    // Don't error if user is not authenticated — returns 401 which is expected
-    retry: false,
+    enabled: Boolean(id) && enabled,
   });
 }
  

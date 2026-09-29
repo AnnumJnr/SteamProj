@@ -9,6 +9,7 @@ from django.urls import path
 from apps.progress.views import (
     MarkCourseCompleteView,
     MarkCourseStartedView,
+    CourseProgressView,
     ProgressSummaryView,
     SavedComboDetailView,
     SavedCombosListView,
@@ -22,6 +23,7 @@ urlpatterns = [
     # Progress listing and summary
     path("", UserProgressListView.as_view(), name="progress-list"),
     path("summary/", ProgressSummaryView.as_view(), name="progress-summary"),
+    path("courses/<uuid:course_id>/", CourseProgressView.as_view(), name="course-progress"),
 
     # Self-reported progress actions
     path("start/", MarkCourseStartedView.as_view(), name="progress-start"),

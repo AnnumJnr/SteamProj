@@ -30,19 +30,20 @@ const STATUS_CONFIG: Record<ProgressStatus, { label: string; variant: "success" 
  
 export default function ProgressPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: progressData, isLoading } = useProgress();
-  const { data: summary } = useProgressSummary();
+  const { isAuthenticated, isLoading: authLoading, hasHydrated } = useAuth();
+  const authReady = hasHydrated && isAuthenticated;
+  const { data: progressData, isLoading } = useProgress(authReady);
+  const { data: summary } = useProgressSummary(authReady);
   const { mutate: unenrollCourse, isPending: isUnenrolling } = useUnenrollCourse();
  
   const [confirmCourseId, setConfirmCourseId] = useState<string | null>(null);
   const [confirmCourseTitle, setConfirmCourseTitle] = useState<string>("");
  
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
-  }, [authLoading, isAuthenticated, router]);
+    if (hasHydrated && !authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
+  }, [authLoading, hasHydrated, isAuthenticated, router]);
  
-  if (authLoading || !isAuthenticated) return <LoadingState className="py-24" />;
+  if (authLoading || !hasHydrated || !isAuthenticated) return <LoadingState className="py-24" />;
  
   const progress = progressData?.results ?? [];
  

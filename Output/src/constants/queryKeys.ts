@@ -31,6 +31,7 @@ export const queryKeys = {
     all: ["progress"] as const,
     list: ["progress", "list"] as const,
     summary: ["progress", "summary"] as const,
+    course: (id: string) => ["progress", "course", id] as const,
   },
 
   // ─── Saved Items ──────────────────────────────────────────────────────────

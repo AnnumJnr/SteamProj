@@ -40,6 +40,7 @@ export interface Combo {
   is_public: boolean;
   tags: string[];
   created_by_type: ComboCreatedByType;
+  is_owner?: boolean;
   course_count: number;
   average_rating: number | null;  // annotated field — null when no ratings
   rating_count: number;

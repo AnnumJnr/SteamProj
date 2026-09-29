@@ -50,10 +50,20 @@ class UserProgress(TimestampedModel):
         choices=Status.choices,
         default=Status.NOT_STARTED,
     )
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the user first started or resumed this course.",
+    )
     completed_at = models.DateTimeField(
         null=True,
         blank=True,
         help_text="Timestamp when the user marked this course as complete.",
+    )
+    unenrolled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the user paused participation without deleting history.",
     )
 
     class Meta:
