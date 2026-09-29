@@ -2,26 +2,16 @@ services:
   - type: web
     name: stempath-api
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements/production.txt && python manage.py collectstatic --noinput --settings=core.settings.production
     preDeployCommand: python manage.py migrate --settings=core.settings.production
     startCommand: gunicorn core.wsgi:application
-
-  - type: worker
-    name: stempath-worker
-    runtime: python
-    buildCommand: pip install -r requirements/production.txt
-    startCommand: celery -A core worker --loglevel=info
-
-  - type: worker
-    name: stempath-beat
-    runtime: python
-    buildCommand: pip install -r requirements/production.txt
-    startCommand: celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
   - type: web
     name: stempath-frontend
     runtime: node
     rootDir: Output
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm run start
 
