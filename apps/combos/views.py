@@ -73,7 +73,7 @@ class ComboListView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
-            ComboDetailSerializer(combo).data,
+            ComboDetailSerializer(combo, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -100,7 +100,7 @@ class ComboDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ComboDetailSerializer(combo)
+        serializer = ComboDetailSerializer(combo, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request: Request, combo_id) -> Response:
@@ -120,7 +120,10 @@ class ComboDetailView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(ComboDetailSerializer(updated_combo).data, status=status.HTTP_200_OK)
+        return Response(
+            ComboDetailSerializer(updated_combo, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request: Request, combo_id) -> Response:
         combo = ComboService.get_combo_detail(combo_id, user=request.user)

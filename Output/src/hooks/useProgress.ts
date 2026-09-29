@@ -12,17 +12,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/constants/queryKeys";
 import * as progressService from "@/services/progressService";
  
-export function useProgress() {
+export function useProgress(enabled = true) {
   return useQuery({
     queryKey: queryKeys.progress.list,
     queryFn: progressService.getProgress,
+    enabled,
   });
 }
  
-export function useProgressSummary() {
+export function useProgressSummary(enabled = true) {
   return useQuery({
     queryKey: queryKeys.progress.summary,
     queryFn: progressService.getProgressSummary,
+    enabled,
   });
 }
  
@@ -30,8 +32,9 @@ export function useStartCourse() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (courseId: string) => progressService.startCourse(courseId),
-    onSuccess: () => {
+    onSuccess: (_, courseId) => {
       qc.invalidateQueries({ queryKey: queryKeys.progress.all });
+      qc.invalidateQueries({ queryKey: queryKeys.progress.course(courseId) });
     },
   });
 }
@@ -40,8 +43,9 @@ export function useCompleteCourse() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (courseId: string) => progressService.completeCourse(courseId),
-    onSuccess: () => {
+    onSuccess: (_, courseId) => {
       qc.invalidateQueries({ queryKey: queryKeys.progress.all });
+      qc.invalidateQueries({ queryKey: queryKeys.progress.course(courseId) });
       qc.invalidateQueries({ queryKey: queryKeys.combos.all });
     },
   });
@@ -53,9 +57,18 @@ export function useUnenrollCourse() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (courseId: string) => progressService.unenrollCourse(courseId),
-    onSuccess: () => {
+    onSuccess: (_, courseId) => {
       qc.invalidateQueries({ queryKey: queryKeys.progress.all });
+      qc.invalidateQueries({ queryKey: queryKeys.progress.course(courseId) });
       qc.invalidateQueries({ queryKey: queryKeys.combos.all });
     },
+  });
+}
+
+export function useCourseProgress(courseId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.progress.course(courseId),
+    queryFn: () => progressService.getCourseProgress(courseId),
+    enabled: Boolean(courseId) && enabled,
   });
 }

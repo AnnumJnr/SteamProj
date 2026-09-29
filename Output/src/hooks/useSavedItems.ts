@@ -15,17 +15,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/constants/queryKeys";
 import * as progressService from "@/services/progressService";
  
-export function useSavedCourses() {
+export function useSavedCourses(enabled = true) {
   return useQuery({
     queryKey: queryKeys.saved.courses,
     queryFn: progressService.getSavedCourses,
+    enabled,
   });
 }
  
-export function useSavedCombos() {
+export function useSavedCombos(enabled = true) {
   return useQuery({
     queryKey: queryKeys.saved.combos,
     queryFn: progressService.getSavedCombos,
+    enabled,
   });
 }
  

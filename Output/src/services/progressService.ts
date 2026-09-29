@@ -15,6 +15,7 @@
 import apiClient from "@/lib/api";
 import type {
   UserProgress,
+  CourseProgress,
   ProgressSummary,
   SavedCourse,
   SavedCombo,
@@ -33,6 +34,12 @@ export async function getProgress(): Promise<PaginatedResponse<UserProgress>> {
 export async function getProgressSummary(): Promise<ProgressSummary> {
   const response = await apiClient.get<ProgressSummary>("/progress/summary/");
   return response.data;
+}
+
+// GET /api/v1/progress/courses/{course_id}/
+export async function getCourseProgress(courseId: string): Promise<CourseProgress | null> {
+  const response = await apiClient.get<CourseProgress | null>(`/progress/courses/${courseId}/`);
+  return response.data ?? null;
 }
  
 // POST /api/v1/progress/start/

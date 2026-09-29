@@ -27,19 +27,20 @@ type Tab = "courses" | "combos";
  
 export default function SavedPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, hasHydrated } = useAuth();
+  const authReady = hasHydrated && isAuthenticated;
   const [activeTab, setActiveTab] = useState<Tab>("courses");
  
-  const { data: savedCourses, isLoading: coursesLoading } = useSavedCourses();
-  const { data: savedCombos, isLoading: combosLoading } = useSavedCombos();
+  const { data: savedCourses, isLoading: coursesLoading } = useSavedCourses(authReady);
+  const { data: savedCombos, isLoading: combosLoading } = useSavedCombos(authReady);
   const { mutate: unsaveCourse, isPending: isUnsavingCourse } = useUnsaveCourse();
   const { mutate: unsaveCombo, isPending: isUnsavingCombo } = useUnsaveCombo();
  
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
-  }, [authLoading, isAuthenticated, router]);
+    if (hasHydrated && !authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
+  }, [authLoading, hasHydrated, isAuthenticated, router]);
  
-  if (authLoading || !isAuthenticated) return <LoadingState className="py-24" />;
+  if (authLoading || !hasHydrated || !isAuthenticated) return <LoadingState className="py-24" />;
  
   const courses = savedCourses?.results ?? [];
   const combos = savedCombos?.results ?? [];

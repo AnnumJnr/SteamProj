@@ -23,6 +23,7 @@ from apps.progress.serializers import (
     SavedComboSerializer,
     SavedCourseSerializer,
     SaveItemSerializer,
+    CourseProgressSerializer,
     UserProgressSerializer,
 )
 from apps.progress.services import UserProgressService, UserSavedItemsService
@@ -60,6 +61,18 @@ class ProgressSummaryView(APIView):
         summary = UserProgressService.get_progress_summary(request.user.pk)
         serializer = ProgressSummarySerializer(summary)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CourseProgressView(APIView):
+    """GET /progress/courses/{course_id}/ for the authenticated user."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, course_id) -> Response:
+        progress = UserProgressService.get_course_progress(request.user.pk, course_id)
+        if progress is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(CourseProgressSerializer(progress).data, status=status.HTTP_200_OK)
 
 
 class MarkCourseStartedView(APIView):
@@ -221,5 +234,5 @@ class UnenrollCourseView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request: Request, course_id) -> Response:
-        UserProgressService.delete_course_progress(request.user, course_id)
+        UserProgressService.unenroll_course(request.user, course_id)
         return Response(status=status.HTTP_204_NO_CONTENT)

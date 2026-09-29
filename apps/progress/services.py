@@ -14,6 +14,7 @@ Rules enforced:
 
 import logging
 
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.combos.querysets import ComboQueryset
@@ -61,9 +62,25 @@ class UserProgressService:
         if course is None:
             raise ValueError(f"Course not found or inactive: {course_id}")
 
-        existing = UserProgressQueryset.get_by_user_and_course(user.pk, course_id)
+        existing = UserProgressQueryset.get_any_by_user_and_course(user.pk, course_id)
 
         if existing:
+            if existing.unenrolled_at is not None:
+                existing.status = UserProgress.Status.IN_PROGRESS
+                existing.started_at = existing.started_at or timezone.now()
+                existing.completed_at = None
+                existing.unenrolled_at = None
+                existing.save(
+                    update_fields=[
+                        "status",
+                        "started_at",
+                        "completed_at",
+                        "unenrolled_at",
+                        "updated_at",
+                    ]
+                )
+                return existing
+
             if existing.status == UserProgress.Status.COMPLETED:
                 # No regression from completed — return as-is
                 logger.info(
@@ -77,14 +94,22 @@ class UserProgressService:
                 return existing  # Already in progress — idempotent
 
             existing.status = UserProgress.Status.IN_PROGRESS
-            existing.save(update_fields=["status", "updated_at"])
+            existing.started_at = existing.started_at or timezone.now()
+            existing.save(update_fields=["status", "started_at", "updated_at"])
             return existing
 
-        progress = UserProgress.objects.create(
-            user=user,
-            course=course,
-            status=UserProgress.Status.IN_PROGRESS,
-        )
+        try:
+            with transaction.atomic():
+                progress = UserProgress.objects.create(
+                    user=user,
+                    course=course,
+                    status=UserProgress.Status.IN_PROGRESS,
+                    started_at=timezone.now(),
+                )
+        except IntegrityError:
+            progress = UserProgressQueryset.get_any_by_user_and_course(user.pk, course_id)
+            if progress is None:
+                raise
         logger.info(
             "UserProgressService.mark_course_started: User %s started course '%s'",
             user.email,
@@ -110,15 +135,25 @@ class UserProgressService:
         if course is None:
             raise ValueError(f"Course not found or inactive: {course_id}")
 
-        existing = UserProgressQueryset.get_by_user_and_course(user.pk, course_id)
+        existing = UserProgressQueryset.get_any_by_user_and_course(user.pk, course_id)
 
         if existing:
             if existing.status == UserProgress.Status.COMPLETED:
                 return existing  # Already complete — idempotent
 
             existing.status = UserProgress.Status.COMPLETED
+            existing.started_at = existing.started_at or timezone.now()
             existing.completed_at = timezone.now()
-            existing.save(update_fields=["status", "completed_at", "updated_at"])
+            existing.unenrolled_at = None
+            existing.save(
+                update_fields=[
+                    "status",
+                    "started_at",
+                    "completed_at",
+                    "unenrolled_at",
+                    "updated_at",
+                ]
+            )
             logger.info(
                 "UserProgressService.mark_course_complete: User %s completed course '%s'",
                 user.email,
@@ -126,12 +161,19 @@ class UserProgressService:
             )
             return existing
 
-        progress = UserProgress.objects.create(
-            user=user,
-            course=course,
-            status=UserProgress.Status.COMPLETED,
-            completed_at=timezone.now(),
-        )
+        try:
+            with transaction.atomic():
+                progress = UserProgress.objects.create(
+                    user=user,
+                    course=course,
+                    status=UserProgress.Status.COMPLETED,
+                    started_at=timezone.now(),
+                    completed_at=timezone.now(),
+                )
+        except IntegrityError:
+            progress = UserProgressQueryset.get_any_by_user_and_course(user.pk, course_id)
+            if progress is None:
+                raise
         logger.info(
             "UserProgressService.mark_course_complete: User %s marked course '%s' complete (new record)",
             user.email,
@@ -145,16 +187,17 @@ class UserProgressService:
         return UserProgressQueryset.get_by_user_and_course(user_id, course_id)
     
     @staticmethod
-    def delete_course_progress(user: User, course_id) -> None:
+    def unenroll_course(user: User, course_id) -> None:
         """
-        Delete all progress for a user on a specific course (unenroll).
-        Silently succeeds if no record exists — idempotent.
+        Archive active progress without deleting the user's learning history.
+        Silently succeeds if no active record exists — idempotent.
         """
         existing = UserProgressQueryset.get_by_user_and_course(user.pk, course_id)
         if existing:
-            existing.delete()
+            existing.unenrolled_at = timezone.now()
+            existing.save(update_fields=["unenrolled_at", "updated_at"])
             logger.info(
-                "UserProgressService.delete_course_progress: User %s unenrolled from course %s",
+                "UserProgressService.unenroll_course: User %s unenrolled from course %s",
                 user.email, course_id,
             )
 
@@ -194,11 +237,17 @@ class UserSavedItemsService:
         if existing:
             return existing  # Already saved — idempotent
 
-        saved = UserSavedItems.objects.create(
-            user=user,
-            item_type=UserSavedItems.ItemType.COURSE,
-            course=course,
-        )
+        try:
+            with transaction.atomic():
+                saved = UserSavedItems.objects.create(
+                    user=user,
+                    item_type=UserSavedItems.ItemType.COURSE,
+                    course=course,
+                )
+        except IntegrityError:
+            saved = UserSavedItemsQueryset.get_saved_course(user.pk, course_id)
+            if saved is None:
+                raise
         logger.info(
             "UserSavedItemsService.save_course: User %s saved course '%s'",
             user.email,
@@ -249,11 +298,17 @@ class UserSavedItemsService:
         if existing:
             return existing  # Already saved — idempotent
 
-        saved = UserSavedItems.objects.create(
-            user=user,
-            item_type=UserSavedItems.ItemType.COMBO,
-            combo=combo,
-        )
+        try:
+            with transaction.atomic():
+                saved = UserSavedItems.objects.create(
+                    user=user,
+                    item_type=UserSavedItems.ItemType.COMBO,
+                    combo=combo,
+                )
+        except IntegrityError:
+            saved = UserSavedItemsQueryset.get_saved_combo(user.pk, combo_id)
+            if saved is None:
+                raise
         logger.info(
             "UserSavedItemsService.save_combo: User %s saved combo '%s'",
             user.email,

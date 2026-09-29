@@ -21,14 +21,22 @@ class UserProgressSerializer(serializers.ModelSerializer):
     Includes nested course card data for display.
 
     Output shape (must match frontend types/progress.ts → UserProgress exactly):
-    { id, status, completed_at, created_at, updated_at, course: CourseListItem }
+    { id, status, started_at, completed_at, created_at, updated_at, course: CourseListItem }
     """
 
     course = CourseListSerializer(read_only=True)
 
     class Meta:
         model = UserProgress
-        fields = ["id", "status", "completed_at", "created_at", "updated_at", "course"]
+        fields = [
+            "id",
+            "status",
+            "started_at",
+            "completed_at",
+            "created_at",
+            "updated_at",
+            "course",
+        ]
         read_only_fields = fields
 
 
@@ -50,6 +58,20 @@ class MarkCourseActionSerializer(serializers.Serializer):
     """
 
     course_id = serializers.UUIDField()
+
+
+class CourseProgressSerializer(UserProgressSerializer):
+    """Current progress for a single course, without nested course duplication."""
+
+    class Meta(UserProgressSerializer.Meta):
+        fields = [
+            "id",
+            "status",
+            "started_at",
+            "completed_at",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class ComboProgressSerializer(serializers.Serializer):

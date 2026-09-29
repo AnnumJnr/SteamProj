@@ -26,7 +26,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCombo, useComboProgress, useDeleteCombo, useUpdateCombo } from "@/hooks/useCombos";
-import { useCompleteCourse, useStartCourse } from "@/hooks/useProgress";
+import { useCompleteCourse } from "@/hooks/useProgress";
 import { useSaveCombo, useSavedCombos, useUnsaveCombo } from "@/hooks/useSavedItems";
 import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,19 +61,19 @@ export default function ComboDetailPage() {
   const qc = useQueryClient();
  
   const { data: combo, isLoading, isError, refetch } = useCombo(id);
-  const { data: progress } = useComboProgress(id);
+  const { data: progress } = useComboProgress(id, isAuthenticated);
   const { mutate: deleteCombo, isPending: isDeleting } = useDeleteCombo();
   const { mutate: updateCombo, isPending: isUpdating } = useUpdateCombo(id);
-  const { mutate: startCourse } = useStartCourse();
   const { mutate: completeCourse } = useCompleteCourse();
   const { mutate: saveCombo, isPending: isSaving } = useSaveCombo();
   const { mutate: unsaveCombo, isPending: isUnsaving } = useUnsaveCombo();
-  const { data: savedCombosData } = useSavedCombos();
+  const { data: savedCombosData } = useSavedCombos(isAuthenticated);
  
   // ─── Owner edit state ─────────────────────────────────────────────────────
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddCoursesOpen, setIsAddCoursesOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [courseToRemove, setCourseToRemove] = useState<{ id: string; title: string } | null>(null);
  
   // Edit form fields
   const [editTitle, setEditTitle] = useState("");
@@ -98,10 +98,7 @@ export default function ComboDetailPage() {
   // ─── Derived state ────────────────────────────────────────────────────────
   const isSaved = savedCombosData?.results?.some((s) => s.combo.id === id) ?? false;
  
-  // Owner = authenticated AND this combo was created by a user AND the user
-  // has access to edit it (backend enforces the actual permission check).
-  // We show owner controls if created_by_type === "user" and user is authenticated.
-  const isOwner = isAuthenticated && combo?.created_by_type === "user";
+  const isOwner = isAuthenticated && combo?.is_owner === true;
  
   const courses = combo?.courses ?? [];
   const completedIds = new Set(progress?.completed_course_ids ?? []);
@@ -612,18 +609,16 @@ export default function ComboDetailPage() {
                             </div>
                           )}
  
-                          {/* Complete toggle */}
+                          {/* Completion is one-way; reset is a separate workflow. */}
                           {isAuthenticated && comboCourse.course && (
                             <Button
                               size="sm"
                               variant={isCompleted ? "ghost" : "secondary"}
                               className="text-xs"
-                              onClick={() => isCompleted
-                                ? startCourse(comboCourse.course.id)
-                                : completeCourse(comboCourse.course.id)
-                              }
+                              disabled={isCompleted}
+                              onClick={() => completeCourse(comboCourse.course.id)}
                             >
-                              {isCompleted ? "Undo" : "Complete"}
+                              {isCompleted ? "Completed" : "Complete"}
                             </Button>
                           )}
  
@@ -635,7 +630,10 @@ export default function ComboDetailPage() {
                               isLoading={isRemoving}
                               className="text-xs px-2"
                               title="Remove from combo"
-                              onClick={() => handleRemoveCourse(comboCourse.course.id)}
+                              onClick={() => setCourseToRemove({
+                                id: comboCourse.course.id,
+                                title: comboCourse.course.title,
+                              })}
                             >
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -787,6 +785,34 @@ export default function ComboDetailPage() {
           <div className="flex gap-3 justify-end">
             <Button variant="ghost" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
             <Button variant="danger" isLoading={isDeleting} onClick={handleDeleteCombo}>Delete Combo</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(courseToRemove)}
+        onClose={() => setCourseToRemove(null)}
+        title="Remove course from combo"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary">
+            Remove <span className="font-semibold text-text-primary">{courseToRemove?.title}</span> from this learning path?
+            Its required-course status and combo completion calculation may change.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setCourseToRemove(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              isLoading={Boolean(courseToRemove && removingCourseId === courseToRemove.id)}
+              onClick={() => {
+                if (!courseToRemove) return;
+                handleRemoveCourse(courseToRemove.id);
+                setCourseToRemove(null);
+              }}
+            >
+              Remove course
+            </Button>
           </div>
         </div>
       </Modal>

@@ -14,7 +14,7 @@ Rules enforced:
 
 import logging
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 
 from apps.combos.models import Combo, ComboCourse, ComboRating
@@ -298,7 +298,10 @@ class ComboService:
         MULTI-USE: Called by ComboDetailView and user dashboard.
         """
         combo_course_ids = set(
-            ComboCourse.objects.filter(combo_id=combo_id).values_list("course_id", flat=True)
+            ComboCourse.objects.filter(
+                combo_id=combo_id,
+                is_required=True,
+            ).values_list("course_id", flat=True)
         )
         completed_ids = UserProgressQueryset.get_completed_course_ids_for_user(user_id)
         completed_in_combo = combo_course_ids & completed_ids
@@ -350,12 +353,18 @@ class ComboRatingService:
             )
             return existing
 
-        combo_rating = ComboRating.objects.create(
-            combo=combo,
-            user=user,
-            rating=rating,
-            review=review,
-        )
+        try:
+            with transaction.atomic():
+                combo_rating = ComboRating.objects.create(
+                    combo=combo,
+                    user=user,
+                    rating=rating,
+                    review=review,
+                )
+        except IntegrityError:
+            combo_rating = ComboRatingQueryset.get_by_combo_and_user(combo.pk, user.pk)
+            if combo_rating is None:
+                raise
         logger.info(
             "ComboRatingService.rate_combo: User %s rated combo '%s': %d",
             user.email,

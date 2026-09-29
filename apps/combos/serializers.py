@@ -86,6 +86,15 @@ class ComboDetailSerializer(serializers.ModelSerializer):
     course_count = serializers.IntegerField(read_only=True)
     average_rating = serializers.FloatField(read_only=True, allow_null=True)
     rating_count = serializers.IntegerField(read_only=True)
+    is_owner = serializers.SerializerMethodField()
+
+    def get_is_owner(self, obj):
+        request = self.context.get("request")
+        return bool(
+            request
+            and request.user.is_authenticated
+            and obj.created_by_user_id == request.user.pk
+        )
 
     class Meta:
         model = Combo
@@ -110,6 +119,7 @@ class ComboDetailSerializer(serializers.ModelSerializer):
             "is_featured",
             "tags",
             "created_by_type",
+            "is_owner",
             "courses",
             "course_count",
             "average_rating",

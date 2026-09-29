@@ -28,7 +28,7 @@ class UserProgressQueryset:
         Used in the dashboard progress view.
         """
         return (
-            UserProgress.objects.filter(user_id=user_id)
+            UserProgress.objects.filter(user_id=user_id, unenrolled_at__isnull=True)
             .select_related("course")
             .order_by("-updated_at")
         )
@@ -40,6 +40,18 @@ class UserProgressQueryset:
         Used when marking a course as complete or checking current status.
         """
         try:
+            return UserProgress.objects.get(
+                user_id=user_id,
+                course_id=course_id,
+                unenrolled_at__isnull=True,
+            )
+        except UserProgress.DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_any_by_user_and_course(user_id, course_id) -> UserProgress | None:
+        """Return active or archived progress for a user and course."""
+        try:
             return UserProgress.objects.get(user_id=user_id, course_id=course_id)
         except UserProgress.DoesNotExist:
             return None
@@ -49,7 +61,9 @@ class UserProgressQueryset:
         """Return all completed course progress records for a user."""
         return (
             UserProgress.objects.filter(
-                user_id=user_id, status=UserProgress.Status.COMPLETED
+                user_id=user_id,
+                status=UserProgress.Status.COMPLETED,
+                unenrolled_at__isnull=True,
             )
             .select_related("course")
             .order_by("-completed_at")
@@ -60,7 +74,9 @@ class UserProgressQueryset:
         """Return all in-progress course records for a user."""
         return (
             UserProgress.objects.filter(
-                user_id=user_id, status=UserProgress.Status.IN_PROGRESS
+                user_id=user_id,
+                status=UserProgress.Status.IN_PROGRESS,
+                unenrolled_at__isnull=True,
             )
             .select_related("course")
             .order_by("-updated_at")
@@ -79,7 +95,9 @@ class UserProgressQueryset:
         """
         return set(
             UserProgress.objects.filter(
-                user_id=user_id, status=UserProgress.Status.COMPLETED
+                user_id=user_id,
+                status=UserProgress.Status.COMPLETED,
+                unenrolled_at__isnull=True,
             ).values_list("course_id", flat=True)
         )
 
@@ -90,7 +108,10 @@ class UserProgressQueryset:
         Used in the dashboard overview.
         Returns: { not_started, in_progress, completed }
         """
-        records = UserProgress.objects.filter(user_id=user_id)
+        records = UserProgress.objects.filter(
+            user_id=user_id,
+            unenrolled_at__isnull=True,
+        )
         counts = records.values("status").annotate(count=Count("status"))
         summary = {
             UserProgress.Status.NOT_STARTED: 0,

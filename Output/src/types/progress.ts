@@ -14,14 +14,17 @@ export type SavedItemType = "course" | "combo";
 
 // Matches UserProgressSerializer output
 // Source: apps/progress/serializers.py → UserProgressSerializer
-export interface UserProgress {
+export interface CourseProgress {
   id: string;
-  course: Course;
   status: ProgressStatus;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserProgress extends CourseProgress {
+  course: Course;
 }
 
 // Matches ProgressSummarySerializer output
@@ -30,7 +33,6 @@ export interface ProgressSummary {
   not_started: number;
   in_progress: number;
   completed: number;
-  total: number;
 }
 
 // Matches SavedCourseSerializer output
@@ -38,7 +40,7 @@ export interface ProgressSummary {
 export interface SavedCourse {
   id: string;
   course: Course;
-  saved_at: string;
+  created_at: string;
 }
 
 // Matches SavedComboSerializer output
@@ -46,5 +48,5 @@ export interface SavedCourse {
 export interface SavedCombo {
   id: string;
   combo: Combo;
-  saved_at: string;
+  created_at: string;
 }

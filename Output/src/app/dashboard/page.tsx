@@ -48,18 +48,19 @@ function StatCard({ label, value, icon, colour }: StatCardProps) {
  
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: summary } = useProgressSummary();
-  const { data: progressData } = useProgress();
-  const { data: savedCourses } = useSavedCourses();
-  const { data: savedCombos } = useSavedCombos();
-  const { data: myCombos } = useMyCombos();
+  const { user, isAuthenticated, isLoading: authLoading, hasHydrated } = useAuth();
+  const authReady = hasHydrated && isAuthenticated;
+  const { data: summary } = useProgressSummary(authReady);
+  const { data: progressData } = useProgress(authReady);
+  const { data: savedCourses } = useSavedCourses(authReady);
+  const { data: savedCombos } = useSavedCombos(authReady);
+  const { data: myCombos } = useMyCombos(authReady);
  
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
-  }, [authLoading, isAuthenticated, router]);
+    if (hasHydrated && !authLoading && !isAuthenticated) router.push(ROUTES.LOGIN);
+  }, [authLoading, hasHydrated, isAuthenticated, router]);
  
-  if (authLoading || !isAuthenticated) return <LoadingState className="py-24" />;
+  if (authLoading || !hasHydrated || !isAuthenticated) return <LoadingState className="py-24" />;
  
   // Enrolled = in_progress + completed
   const enrolledCount = (summary?.in_progress ?? 0) + (summary?.completed ?? 0);
