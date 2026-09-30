@@ -7,7 +7,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: [{ key: "X-Frame-Options", value: "SAMEORIGIN" }],
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Next.js' default COOP (same-origin) blocks the cross-origin
+          // window.postMessage calls Google Identity Services relies on.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+        ],
       },
     ];
   },

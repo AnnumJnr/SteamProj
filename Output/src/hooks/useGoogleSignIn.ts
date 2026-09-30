@@ -20,7 +20,7 @@ declare global {
           }) => void;
           renderButton: (
             parent: HTMLElement,
-            options: Record<string, string>
+            options: Record<string, string | number>
           ) => void;
         };
       };
@@ -78,7 +78,10 @@ export function useGoogleSignIn(onCredential: (idToken: string) => void) {
           type: "standard",
           theme: "outline",
           size: "large",
-          width: "100%",
+          // GIS only accepts a pixel number (200–400) — "100%" is rejected and
+          // falls back to its default. The container's [&>div]:!w-full CSS
+          // stretches the rendered button to full width.
+          width: 400,
           text: "continue_with",
         });
       })
