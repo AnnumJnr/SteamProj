@@ -117,7 +117,9 @@ export function Navbar() {
             {!hasHydrated ? (
               // Reserve the slot until localStorage is read, so a logged-in user
               // never sees Log in / Sign up flash before their avatar appears.
-              <div className="w-[7.5rem] h-8" aria-hidden="true" />
+              // Hidden on phones, where the auth buttons are hidden too (they
+              // live in the mobile menu there) — reserving space would overflow.
+              <div className="hidden sm:block w-[7.5rem] h-8" aria-hidden="true" />
             ) : isAuthenticated && user ? (
               <div className="relative">
                 <button
@@ -169,7 +171,9 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              // Text buttons don't fit next to the logo on phones — they are in
+              // the mobile menu below instead.
+              <div className="hidden sm:flex items-center gap-2">
                 <Link href={ROUTES.LOGIN}>
                   <Button variant="ghost" size="sm">Log in</Button>
                 </Link>
@@ -213,6 +217,38 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {/* Auth entries live here on phones — the navbar buttons are
+                hidden below sm to keep the bar from overflowing. */}
+            {!isAuthenticated && (
+              <>
+                <div className="border-t border-surface-border my-2" />
+                <Link
+                  href={ROUTES.LOGIN}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={cn(
+                    "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium mb-1 transition-colors",
+                    pathname === ROUTES.LOGIN
+                      ? "text-primary bg-primary-subtle"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface-raised"
+                  )}
+                >
+                  Log in
+                </Link>
+                <Link
+                  href={ROUTES.REGISTER}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={cn(
+                    "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    pathname === ROUTES.REGISTER
+                      ? "text-primary bg-primary-subtle"
+                      : "text-primary hover:text-primary-hover hover:bg-surface-raised"
+                  )}
+                >
+                  Sign up for free
+                </Link>
+              </>
+            )}
           </div>
         )}
       </PageContainer>
