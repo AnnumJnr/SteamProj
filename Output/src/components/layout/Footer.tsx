@@ -36,7 +36,7 @@ export function Footer() {
                 </svg>
               </div>
               <span className="font-display text-lg font-bold text-text-primary">
-                STEM<span className="text-primary">Path</span>
+                LearnWith<span className="text-primary">Glinax</span>
               </span>
             </Link>
             <p className="text-sm text-text-muted leading-relaxed">

@@ -8,6 +8,35 @@ services:
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings.production
+      # sync: false = Render prompts for the value when the blueprint is
+      # applied (nothing secret is stored in this file). See .env.example
+      # for what each one means.
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: POSTHOG_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
 
   - type: web
     name: stempath-frontend
@@ -16,6 +45,11 @@ services:
     plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+        sync: false
 
   - type: keyvalue
     name: stempath-redis
