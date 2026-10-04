@@ -75,7 +75,7 @@ export function Navbar() {
               </svg>
             </div>
             <span className="font-display text-xl font-bold text-text-primary">
-              STEM<span className="text-primary">Path</span>
+              LearnWith<span className="text-primary">Glinax</span>
             </span>
           </Link>
 

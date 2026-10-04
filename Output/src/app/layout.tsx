@@ -53,14 +53,14 @@ const themeScript = `
 
 export const metadata: Metadata = {
   title: {
-    default: "STEMPath — Guided STEM Learning Paths",
-    template: "%s | STEMPath",
+    default: "LearnWithGlinax — Guided STEM Learning Paths",
+    template: "%s | LearnWithGlinax",
   },
   description:
     "Discover curated STEM courses and structured Combo learning paths from trusted sources. Learn at your pace, track your progress.",
   keywords: ["STEM", "learning", "courses", "coding", "mathematics", "science", "engineering"],
   openGraph: {
-    title: "STEMPath — Guided STEM Learning Paths",
+    title: "LearnWithGlinax — Guided STEM Learning Paths",
     description: "Curated STEM courses and structured learning paths for every level.",
     type: "website",
   },

@@ -16,8 +16,8 @@ import { ROUTES } from "@/constants/routes";
 
 export const metadata: Metadata = {
   title: {
-    default: "STEMPath",
-    template: "%s | STEMPath",
+    default: "Log in or sign up",
+    template: "%s | LearnWithGlinax",
   },
 };
 
@@ -40,7 +40,7 @@ export default function AuthLayout({
             </svg>
           </div>
           <span className="font-display text-xl font-bold text-text-primary">
-            STEM<span className="text-primary">Path</span>
+            LearnWith<span className="text-primary">Glinax</span>
           </span>
         </Link>
 
