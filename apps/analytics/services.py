@@ -107,11 +107,16 @@ class AnalyticsService:
             return
 
         # ── Dispatch async PostHog delivery ───────────────────────────────────
+        # dispatch_task keeps the broker out of the request path: a slow or
+        # unreachable broker must never delay the HTTP response (see
+        # common/tasks.py). With INLINE_TASK_DISPATCH the delivery runs in a
+        # daemon thread; the EventLog record above stays the replay source.
         # Import task here to avoid circular imports.
         from apps.analytics.tasks import dispatch_event_to_posthog_task
+        from common.tasks import dispatch_task
 
         try:
-            dispatch_event_to_posthog_task.delay(event_log.pk)
+            dispatch_task(dispatch_event_to_posthog_task, event_log.pk)
             logger.info(
                 "AnalyticsService.fire_event: PostHog dispatch task queued "
                 "for EventLog id=%s",

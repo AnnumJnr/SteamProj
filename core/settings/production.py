@@ -11,6 +11,18 @@ from decouple import config
 
 DEBUG = False
 
+# ─── Background task dispatch ─────────────────────────────────────────────────
+#
+# No Celery worker is deployed on Render, so tasks queued via the Redis broker
+# would never be consumed — and when the broker is slow or unreachable, the
+# synchronous .delay() publish blocks the HTTP request for tens of seconds
+# (register/login hung ~20s+ and timed out client-side even though the DB
+# work succeeded). INLINE_TASK_DISPATCH switches dispatch to daemon threads
+# that execute the task body directly (see common/tasks.py): the request path
+# never touches the broker, and PostHog delivery / welcome emails actually run.
+# Set to False (and deploy a worker) if broker-based dispatch is reintroduced.
+INLINE_TASK_DISPATCH = True
+
 # Security headers
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
