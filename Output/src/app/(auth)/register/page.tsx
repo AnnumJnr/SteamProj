@@ -1,12 +1,15 @@
 /**
  * app/(auth)/register/page.tsx
- * Registration page. Email/password only for MVP.
+ * Registration page. Supports email/password and Google OAuth.
  *
  * Flow:
- *   User submits → authService.register() → setAuth() → redirect to dashboard
+ *   1. User submits → authService.register() → setAuth() → redirect to dashboard
+ *   2. User clicks Google → authService.googleAuth() → setAuth() → redirect
+ *      The backend Google endpoint signs up brand-new users and signs in
+ *      existing ones — same endpoint the login page uses.
  *
  * Field names match backend RegisterSerializer exactly:
- *   email, password1, password2
+ *   email, password, password_confirm
  * Source: apps/users/serializers.py → RegisterSerializer
  *
  * Analytics: USER_SIGNED_UP is fired by the BACKEND on successful registration.
@@ -26,6 +29,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import * as authService from "@/services/authService";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -43,7 +47,33 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
- 
+
+  async function handleGoogleCredential(idToken: string) {
+    setGlobalError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await authService.googleAuth(idToken);
+
+      setAuth(response.user, {
+        access: response.access,
+        refresh: response.refresh,
+      });
+
+      router.push(ROUTES.DASHBOARD);
+    } catch (err: unknown) {
+      const message =
+        (err as { detail?: string })?.detail ||
+        (err as { message?: string })?.message ||
+        "Google sign-up failed. Please try again.";
+      setGlobalError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const googleButtonRef = useGoogleSignIn(handleGoogleCredential);
+
   function validateForm(): boolean {
     const newErrors: Record<string, string> = {};
     if (!email) newErrors.email = "Email is required.";
@@ -223,6 +253,30 @@ export default function RegisterPage() {
             Create account
           </Button>
         </form>
+
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-surface-border" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="px-3 bg-surface-raised text-xs text-text-muted">or</span>
+          </div>
+        </div>
+
+        {/* Google button — rendered by Google Identity Services into this container.
+            The backend signs up new users and signs in existing ones, so this
+            doubles as "Sign up with Google". */}
+        <div
+          ref={googleButtonRef}
+          className="flex justify-center [&>div]:!w-full"
+          aria-disabled={isLoading}
+        />
+        {!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+          <p className="mt-2 text-center text-xs text-text-muted">
+            Google sign-up is not configured (NEXT_PUBLIC_GOOGLE_CLIENT_ID missing).
+          </p>
+        )}
  
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-text-muted">

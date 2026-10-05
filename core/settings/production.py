@@ -11,6 +11,30 @@ from decouple import config
 
 DEBUG = False
 
+# ─── Background task dispatch ─────────────────────────────────────────────────
+#
+# No Celery worker is deployed on Render, so tasks queued via the Redis broker
+# would never be consumed — and when the broker is slow or unreachable, the
+# synchronous .delay() publish blocks the HTTP request for tens of seconds
+# (register/login hung ~20s+ and timed out client-side even though the DB
+# work succeeded). INLINE_TASK_DISPATCH switches dispatch to daemon threads
+# that execute the task body directly (see common/tasks.py): the request path
+# never touches the broker, and PostHog delivery / welcome emails actually run.
+# Set to False (and deploy a worker) if broker-based dispatch is reintroduced.
+# ─── Transactional email ──────────────────────────────────────────────────────
+#
+# Render blocks outbound SMTP connections: the welcome email's smtplib connect
+# to smtp-relay.brevo.com:587 hung ~133s and failed with TimeoutError [Errno
+# 110] (2026-10-04 log). HTTPS egress is allowed, so when BREVO_API_KEY is set
+# (Brevo → SMTP & API → API Keys — a different credential from the SMTP key)
+# email is sent via the Brevo HTTP API instead of SMTP. Without the key the
+# SMTP backend is kept, unchanged. Sender must be a verified sender in Brevo
+# (set DEFAULT_FROM_EMAIL accordingly, e.g. the account owner's email).
+if BREVO_API_KEY:  # noqa: F405 — defined in base.py
+    EMAIL_BACKEND = "common.brevo_backend.BrevoApiBackend"
+
+INLINE_TASK_DISPATCH = True
+
 # Security headers
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

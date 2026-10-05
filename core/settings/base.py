@@ -208,12 +208,19 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # ─── Email ────────────────────────────────────────────────────────────────────
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# Cap SMTP hangs: with no timeout a blocked SMTP port stalls for the OS TCP
+# timeout (~133s observed on Render) inside the send's thread.
+EMAIL_TIMEOUT = 15
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="STEM Platform <noreply@stemplatform.com>")
+# Brevo HTTP API key (Brevo → SMTP & API → API Keys — NOT the SMTP key).
+# Read by common/brevo_backend.py; production.py switches EMAIL_BACKEND to the
+# Brevo API backend automatically when this is non-empty.
+BREVO_API_KEY = config("BREVO_API_KEY", default="")
 
 
 # ─── Internationalization ─────────────────────────────────────────────────────

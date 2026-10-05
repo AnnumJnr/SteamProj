@@ -27,7 +27,7 @@ class TestBuildWelcomeEmail:
 
     def test_subject_is_set(self):
         email = build_welcome_email(user_email="jane@example.com", display_name="Jane")
-        assert email.subject == "Welcome to STEM Platform 🎓"
+        assert email.subject == "Welcome to LearnWithGlinax 🎓"
 
     def test_greets_user_by_display_name(self):
         email = build_welcome_email(user_email="jane@example.com", display_name="Jane")

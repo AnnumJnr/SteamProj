@@ -36,7 +36,7 @@ export function Footer() {
                 </svg>
               </div>
               <span className="font-display text-lg font-bold text-text-primary">
-                STEM<span className="text-primary">Path</span>
+                LearnWith<span className="text-primary">Glinax</span>
               </span>
             </Link>
             <p className="text-sm text-text-muted leading-relaxed">
@@ -84,7 +84,7 @@ export function Footer() {
 
         <div className="py-4 border-t border-surface-border flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-text-muted">
-            © {new Date().getFullYear()} STEMPath. All rights reserved.
+            © {new Date().getFullYear()} LearnWithGlinax. All rights reserved.
           </p>
           <p className="text-xs text-text-muted">
             Built for curious minds everywhere.

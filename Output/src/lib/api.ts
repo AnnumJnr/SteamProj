@@ -18,7 +18,10 @@ const API_BASE_URL =
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  // Generous timeout: the backend runs on Render's free tier, where a
+  // cold-started instance can take 30-60s to answer the first request.
+  // A short timeout here made every first-of-the-day request "fail".
+  timeout: 45000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -175,6 +178,18 @@ export function normaliseError(error: unknown): ApiError {
         errors: data.errors,
         code: data.code,
       };
+    }
+    // No response body: translate low-level client errors into plain
+    // language instead of surfacing raw Axios strings like
+    // "timeout of 15000ms exceeded".
+    if (error.code === "ECONNABORTED") {
+      const msg = "The server took too long to respond. Please try again.";
+      return { detail: msg, message: msg, code: error.code };
+    }
+    if (error.code === "ERR_NETWORK") {
+      const msg =
+        "Cannot reach the server. Check your connection and try again.";
+      return { detail: msg, message: msg, code: error.code };
     }
     return {
       detail: error.message,

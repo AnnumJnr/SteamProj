@@ -7,5 +7,8 @@ Currently not used — WSGI is the active entry point.
 import os
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.production")
+# Hard pin, not setdefault — same rationale as wsgi.py: an ASGI server must
+# never boot with development settings, which import the uninstalled
+# debug_toolbar app in production.
+os.environ["DJANGO_SETTINGS_MODULE"] = "core.settings.production"
 application = get_asgi_application()

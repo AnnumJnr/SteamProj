@@ -20,7 +20,7 @@ declare global {
           }) => void;
           renderButton: (
             parent: HTMLElement,
-            options: Record<string, string>
+            options: Record<string, string | number>
           ) => void;
         };
       };
@@ -64,28 +64,52 @@ export function useGoogleSignIn(onCredential: (idToken: string) => void) {
     }
 
     let cancelled = false;
+    let observer: ResizeObserver | null = null;
+    let renderedWidth = 0;
 
     loadGsiScript()
       .then(() => {
         if (cancelled || !window.google || !buttonRef.current) return;
+        const container = buttonRef.current;
+        const gsi = window.google.accounts.id;
 
-        window.google.accounts.id.initialize({
+        gsi.initialize({
           client_id: clientId,
           callback: (response) => onCredentialRef.current(response.credential),
         });
 
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          width: "100%",
-          text: "continue_with",
-        });
+        // GIS only accepts a pixel width (200–400) — never "100%". The container
+        // is fluid (phone widths go under 300px), so measure it, clamp, and
+        // re-render on resize (rotation, breakpoint crossings) so the iframe
+        // never overflows its card.
+        const render = () => {
+          const available = Math.floor(container.getBoundingClientRect().width);
+          if (!available) return;
+          const width = Math.min(400, Math.max(200, available));
+          if (width === renderedWidth) return;
+          renderedWidth = width;
+          container.innerHTML = "";
+          gsi.renderButton(container, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            width,
+            text: "continue_with",
+          });
+        };
+
+        render();
+
+        if ("ResizeObserver" in window) {
+          observer = new ResizeObserver(render);
+          observer.observe(container);
+        }
       })
       .catch((err) => console.error(err));
 
     return () => {
       cancelled = true;
+      observer?.disconnect();
     };
   }, []);
 

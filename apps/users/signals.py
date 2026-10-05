@@ -35,6 +35,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.users.tasks import send_welcome_email_task
+from common.tasks import dispatch_task
 
 if TYPE_CHECKING:
     from apps.users.models import User
@@ -75,8 +76,10 @@ def on_user_created(sender, instance: User, created: bool, **kwargs) -> None:
     # Dispatch welcome email after the DB transaction commits.
     # In CELERY_TASK_ALWAYS_EAGER mode (development), on_commit callbacks
     # fire at the end of the current atomic block or immediately if no
-    # transaction is active.
-    transaction.on_commit(lambda: send_welcome_email_task.delay(instance.pk))
+    # transaction is active. dispatch_task (common/tasks.py) keeps the
+    # broker publish out of the request path in production — a slow or
+    # unreachable Redis must never delay registration.
+    transaction.on_commit(lambda: dispatch_task(send_welcome_email_task, instance.pk))
     logger.info(
         "on_user_created: Profile created and welcome email task queued for user %s",
         instance.email,

@@ -39,14 +39,14 @@ def build_welcome_email(user_email: str, display_name: str = "") -> EmailMultiAl
                        for a generic greeting if empty.
     """
     name = display_name.strip() if display_name.strip() else "there"
-    subject = "Welcome to STEM Platform 🎓"
+    subject = "Welcome to LearnWithGlinax 🎓"
     from_email = settings.DEFAULT_FROM_EMAIL
     to = [user_email]
 
     # ── Plain-text body ───────────────────────────────────────────────────────
     text_body = f"""Hi {name},
 
-Welcome to STEM Platform — your home for structured STEM learning.
+Welcome to LearnWithGlinax — your home for structured STEM learning.
 
 Here's what you can do right now:
   • Browse courses across Computer Science, Mathematics, Sciences, and more
@@ -58,7 +58,7 @@ Get started: {settings.FRONTEND_URL}/courses
 If you have any questions, just reply to this email.
 
 Happy learning,
-The STEM Platform Team
+The LearnWithGlinax Team
 """
 
     # ── HTML body ─────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ The STEM Platform Team
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to STEM Platform</title>
+  <title>Welcome to LearnWithGlinax</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f6f9;font-family:Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:40px 0;">
@@ -83,7 +83,7 @@ The STEM Platform Team
             <td style="background-color:#1a56db;padding:32px 40px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;
                          letter-spacing:-0.5px;">
-                STEM Platform
+                LearnWithGlinax
               </h1>
               <p style="color:#bfdbfe;margin:8px 0 0 0;font-size:14px;">
                 Structured learning for every stage
@@ -98,7 +98,7 @@ The STEM Platform Team
                 Hi {name} 👋
               </h2>
               <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 24px 0;">
-                Welcome to STEM Platform — your home for structured, guided STEM learning.
+                Welcome to LearnWithGlinax — your home for structured, guided STEM learning.
                 Whether you're just starting out or deepening your expertise, we've built
                 the tools to keep you on track.
               </p>
@@ -147,8 +147,8 @@ The STEM Platform Team
             <td style="background-color:#f9fafb;padding:24px 40px;
                        border-top:1px solid #e5e7eb;text-align:center;">
               <p style="color:#9ca3af;font-size:12px;margin:0;line-height:1.6;">
-                You received this email because you signed up at STEM Platform.<br>
-                © 2025 STEM Platform. All rights reserved.
+                You received this email because you signed up at LearnWithGlinax.<br>
+                © 2026 LearnWithGlinax. All rights reserved.
               </p>
             </td>
           </tr>
