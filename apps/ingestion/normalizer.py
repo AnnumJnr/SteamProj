@@ -25,7 +25,24 @@ Changes from v1 (language pipeline improvements):
   where the pipeline had nothing to detect on and passed the course by default.
 - Thin content threshold: title <= 30 chars AND description < 20 chars.
   Confidence contribution: 0.55 (pushes course into FLAGGED territory alone).
- 
+
+Changes from v2 (AI category):
+- Added Course.Category.AI to VALID_CATEGORIES.
+- Added AI-specific keywords at the TOP of CATEGORY_KEYWORDS so that AI
+  content is classified as AI rather than falling through to Computer Science.
+  The normalizer iterates CATEGORY_KEYWORDS in list order and returns the
+  first match, so ordering is significant.
+- Removed the AI-related keywords that previously lived under COMPUTER_SCIENCE
+  ("machine learning", "artificial intelligence", "deep learning") because they
+  are now handled by the AI block above. Keeping them in both places would
+  violate Rule 1 (single source of truth).
+- "data science" intentionally remains under COMPUTER_SCIENCE — data science
+  is not AI.
+- Short tokens "rag" and "nlp" were deliberately NOT included as keywords
+  because substring matching would produce false positives (e.g. "rag" matches
+  "storage", "paragraph", "average"). The longer forms "retrieval augmented
+  generation" and "natural language processing" are used instead.
+
 Rules enforced:
 - Rule 1: All normalization logic lives here — not in sources, not in pipeline
 - Rule 5: Validation of field values happens here (format/type layer)
@@ -33,26 +50,26 @@ Rules enforced:
 - Rule 13: Explicit mapping tables — no regex magic for category detection
 - Rule 14: One job — transform RawCourse → NormalizedCourse
 """
- 
+
 import logging
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
- 
+
 from apps.courses.models import Course
 from apps.ingestion.sources.base import RawCourse
- 
+
 logger = logging.getLogger(__name__)
- 
- 
+
+
 # ─── Output Container ─────────────────────────────────────────────────────────
- 
+
 @dataclass
 class NormalizedCourse:
     """
     Validated course data ready to be written to the database.
     All fields map directly to Course model fields.
- 
+
     Rule 10: This structure must match the Course model schema exactly.
     """
     # Required
@@ -62,47 +79,47 @@ class NormalizedCourse:
     provider_type: str
     category: str
     external_id: str
- 
+
     # Descriptive
     short_description: str = ""
     full_description: str = ""
     instructor: str = ""
     thumbnail_url: str = ""
     language: str = "en"
- 
+
     # Classification
     sub_category: str = ""
     level: str = Course.Level.BEGINNER
     age_group: str = Course.AgeGroup.ADULTS
     format: str = Course.Format.VIDEO
- 
+
     # Duration
     duration_hours: int = 0
     duration_minutes: int = 0
- 
+
     # Ratings
     rating_average: float = 0.0
     rating_count: int = 0
- 
+
     # Structured content
     tags: list = field(default_factory=list)
     learning_outcomes: list = field(default_factory=list)
     prerequisites: list = field(default_factory=list)
- 
+
     # Flags
     is_free: bool = True
     certificate_available: bool = False
- 
+
     # Language quality pipeline output — set by LanguageDetector
     language_status: str = Course.LanguageStatus.UNKNOWN
     language_rejection_reason: str = ""
- 
+
     # Preserved original data — written once, never modified
     source_metadata: dict = field(default_factory=dict)
- 
- 
+
+
 # ─── Mapping Tables ───────────────────────────────────────────────────────────
- 
+
 PROVIDER_MAP: dict[str, str] = {
     "YouTube": Course.Provider.YOUTUBE,
     "freeCodeCamp": Course.Provider.FREECODECAMP,
@@ -111,7 +128,7 @@ PROVIDER_MAP: dict[str, str] = {
     "CK-12": Course.Provider.CK12,
     "Khan Academy": Course.Provider.KHAN_ACADEMY,
 }
- 
+
 PROVIDER_TYPE_MAP: dict[str, str] = {
     Course.Provider.YOUTUBE: Course.ProviderType.VIDEO_PLATFORM,
     Course.Provider.FREECODECAMP: Course.ProviderType.LEARNING_PLATFORM,
@@ -120,7 +137,7 @@ PROVIDER_TYPE_MAP: dict[str, str] = {
     Course.Provider.CK12: Course.ProviderType.LEARNING_PLATFORM,
     Course.Provider.KHAN_ACADEMY: Course.ProviderType.LEARNING_PLATFORM,
 }
- 
+
 LEVEL_MAP: dict[str, str] = {
     "beginner": Course.Level.BEGINNER,
     "intermediate": Course.Level.INTERMEDIATE,
@@ -134,7 +151,7 @@ LEVEL_MAP: dict[str, str] = {
     "upper": Course.Level.ADVANCED,
     "upper-division": Course.Level.ADVANCED,
 }
- 
+
 AGE_GROUP_MAP: dict[str, str] = {
     "kids": Course.AgeGroup.KIDS,
     "children": Course.AgeGroup.KIDS,
@@ -153,26 +170,88 @@ AGE_GROUP_MAP: dict[str, str] = {
     "graduate": Course.AgeGroup.ADULTS,
     "professional": Course.AgeGroup.ADULTS,
 }
- 
+
 VALID_CATEGORIES: set[str] = {
     Course.Category.COMPUTER_SCIENCE,
+    Course.Category.AI,
     Course.Category.MATHEMATICS,
     Course.Category.NATURAL_SCIENCES,
     Course.Category.ENGINEERING,
     Course.Category.TECHNOLOGY_APPLIED,
     Course.Category.STEM_FOUNDATIONS,
 }
- 
+
 VALID_FORMATS: set[str] = {
     Course.Format.VIDEO,
     Course.Format.TEXT,
     Course.Format.INTERACTIVE,
 }
- 
+
+# ─── Category keyword mapping ─────────────────────────────────────────────────
+# ORDER IS SIGNIFICANT. The normalizer returns the FIRST match found by
+# iterating this list top-to-bottom. AI keywords must precede Computer Science
+# keywords so that, for example, "machine learning tutorial" is classified as
+# AI rather than Computer Science.
+#
+# Rule 13: Explicit mapping table — no regex magic.
+
 CATEGORY_KEYWORDS: list[tuple[str, str]] = [
-    ("machine learning", Course.Category.COMPUTER_SCIENCE),
-    ("artificial intelligence", Course.Category.COMPUTER_SCIENCE),
-    ("deep learning", Course.Category.COMPUTER_SCIENCE),
+    # ── AI keywords first — must precede Computer Science to take priority ──
+    # Core concepts
+    ("artificial intelligence", Course.Category.AI),
+    ("machine learning", Course.Category.AI),
+    ("deep learning", Course.Category.AI),
+    ("neural network", Course.Category.AI),
+    ("neural networks", Course.Category.AI),
+    ("reinforcement learning", Course.Category.AI),
+
+    # LLMs and generative AI
+    ("large language model", Course.Category.AI),
+    ("large language models", Course.Category.AI),
+    ("generative ai", Course.Category.AI),
+    ("generative artificial intelligence", Course.Category.AI),
+    ("gen ai", Course.Category.AI),
+    ("prompt engineering", Course.Category.AI),
+
+    # AI agents and orchestration
+    ("ai agents", Course.Category.AI),
+    ("ai agent", Course.Category.AI),
+    ("agentic", Course.Category.AI),
+    ("langchain", Course.Category.AI),
+
+    # Applied AI infrastructure
+    # NOTE: "rag" and "nlp" tokens deliberately omitted — substring matching
+    # would produce false positives. Longer forms are used instead.
+    ("retrieval augmented generation", Course.Category.AI),
+    ("vector database", Course.Category.AI),
+    ("vector databases", Course.Category.AI),
+    ("embeddings", Course.Category.AI),
+    ("transformers", Course.Category.AI),
+
+    # AI subfields
+    ("computer vision", Course.Category.AI),
+    ("natural language processing", Course.Category.AI),
+
+    # Named tools and providers
+    ("chatgpt", Course.Category.AI),
+    ("openai", Course.Category.AI),
+    ("claude ai", Course.Category.AI),
+    ("gemini ai", Course.Category.AI),
+
+    # Learning intent signals — beginner and applied AI
+    ("ai for beginners", Course.Category.AI),
+    ("ai fundamentals", Course.Category.AI),
+    ("ai basics", Course.Category.AI),
+    ("intro to ai", Course.Category.AI),
+    ("introduction to ai", Course.Category.AI),
+    ("how to use ai", Course.Category.AI),
+    ("ai productivity", Course.Category.AI),
+    ("ai tools", Course.Category.AI),
+    ("ai workflow", Course.Category.AI),
+    ("ai automation", Course.Category.AI),
+
+    # ── Computer Science — excludes AI-tagged content by order above ────────
+    # NOTE: "data science" intentionally stays here — it is not AI.
     ("data science", Course.Category.COMPUTER_SCIENCE),
     ("programming", Course.Category.COMPUTER_SCIENCE),
     ("python", Course.Category.COMPUTER_SCIENCE),
@@ -183,6 +262,8 @@ CATEGORY_KEYWORDS: list[tuple[str, str]] = [
     ("software", Course.Category.COMPUTER_SCIENCE),
     ("coding", Course.Category.COMPUTER_SCIENCE),
     ("web development", Course.Category.TECHNOLOGY_APPLIED),
+
+    # ── Mathematics ─────────────────────────────────────────────────────────
     ("calculus", Course.Category.MATHEMATICS),
     ("algebra", Course.Category.MATHEMATICS),
     ("geometry", Course.Category.MATHEMATICS),
@@ -191,6 +272,8 @@ CATEGORY_KEYWORDS: list[tuple[str, str]] = [
     ("probability", Course.Category.MATHEMATICS),
     ("linear algebra", Course.Category.MATHEMATICS),
     ("trigonometry", Course.Category.MATHEMATICS),
+
+    # ── Natural Sciences ────────────────────────────────────────────────────
     ("physics", Course.Category.NATURAL_SCIENCES),
     ("chemistry", Course.Category.NATURAL_SCIENCES),
     ("biology", Course.Category.NATURAL_SCIENCES),
@@ -199,6 +282,8 @@ CATEGORY_KEYWORDS: list[tuple[str, str]] = [
     ("neuroscience", Course.Category.NATURAL_SCIENCES),
     ("ecology", Course.Category.NATURAL_SCIENCES),
     ("genetics", Course.Category.NATURAL_SCIENCES),
+
+    # ── Engineering ─────────────────────────────────────────────────────────
     ("mechanical engineering", Course.Category.ENGINEERING),
     ("electrical engineering", Course.Category.ENGINEERING),
     ("civil engineering", Course.Category.ENGINEERING),
@@ -206,12 +291,16 @@ CATEGORY_KEYWORDS: list[tuple[str, str]] = [
     ("engineering", Course.Category.ENGINEERING),
     ("robotics", Course.Category.ENGINEERING),
     ("circuits", Course.Category.ENGINEERING),
+
+    # ── Technology & Applied Skills ─────────────────────────────────────────
     ("technology", Course.Category.TECHNOLOGY_APPLIED),
     ("applied", Course.Category.TECHNOLOGY_APPLIED),
+
+    # ── STEM Foundations (lowest priority — broad terms) ────────────────────
     ("science", Course.Category.STEM_FOUNDATIONS),
     ("stem", Course.Category.STEM_FOUNDATIONS),
 ]
- 
+
 LEVEL_KEYWORDS: list[tuple[str, str]] = [
     ("advanced", Course.Level.ADVANCED),
     ("expert", Course.Level.ADVANCED),
@@ -224,27 +313,27 @@ LEVEL_KEYWORDS: list[tuple[str, str]] = [
     ("basics", Course.Level.BEGINNER),
     ("for beginners", Course.Level.BEGINNER),
 ]
- 
+
 # ─── Language Detection Constants ─────────────────────────────────────────────
- 
+
 # Confidence contributions per layer
 LAYER_THIN_CONTENT      = 0.55   # Layer 0: no description + short/ambiguous title
 LAYER_METADATA_NON_ENGLISH = 0.30  # Layer 1: language/audio field says non-English
 LAYER_UNICODE_SCRIPT    = 0.90   # Layer 2: non-Latin characters detected
 LAYER_LINGUA_DETECTION  = 0.70   # Layer 3: Lingua detects non-English language
- 
+
 REJECT_THRESHOLD = 0.85   # >= this → REJECTED (hidden from catalog)
 FLAG_THRESHOLD   = 0.50   # >= this → FLAGGED (visible, needs human review)
- 
+
 # Thin content thresholds (Layer 0)
 # A title at or below this length with no description has too little text
 # to make any reliable language determination.
 THIN_TITLE_MAX_CHARS = 30
 THIN_DESCRIPTION_MIN_CHARS = 20
- 
+
 # Minimum ratio of non-Latin characters to trigger Layer 2
 NON_LATIN_RATIO_THRESHOLD = 0.15
- 
+
 # Non-Latin Unicode blocks
 NON_LATIN_BLOCKS: list[tuple[int, int, str]] = [
     (0x0600, 0x06FF, "arabic"),
@@ -271,66 +360,66 @@ NON_LATIN_BLOCKS: list[tuple[int, int, str]] = [
     (0x0400, 0x04FF, "cyrillic"),
     (0x0370, 0x03FF, "greek"),
 ]
- 
+
 NON_ENGLISH_LANGUAGE_CODES: set[str] = {
     "ar", "hi", "ur", "fa", "bn", "pa", "gu", "mr", "ta", "te", "kn", "ml",
     "zh", "ja", "ko", "th", "vi", "ru", "de", "fr", "es", "pt", "it", "nl",
     "pl", "tr", "id", "ms", "sw", "ha", "yo", "ig", "am", "so", "tl",
 }
- 
- 
+
+
 # ─── Language Detector ────────────────────────────────────────────────────────
- 
+
 class LanguageDetector:
     """
     Multi-layer language confidence pipeline.
- 
+
     Layer 0: Thin content detection (NEW)
       When a course has a very short title AND no meaningful description,
       there is not enough text to make any reliable language determination.
       These are flagged for human review automatically.
       Confidence contribution: 0.55 (FLAG threshold is 0.50).
- 
+
     Layer 1: Metadata language field / audio language
       For YouTube: reads defaultAudioLanguage from raw_payload — the actual
       spoken language tagged by the channel owner in YouTube Studio. This is
       the most reliable metadata signal available without inspecting the video.
       For all sources: reads the language field from the normalizer.
       Confidence contribution: 0.30 (low trust — often missing or wrong).
- 
+
     Layer 2: Unicode script detection
       Counts characters in non-Latin Unicode blocks. High confidence signal —
       non-Latin script in a title is almost never accidental.
       Confidence contribution: 0.90.
- 
+
     Layer 3: Lingua language detection
       Detects the language of Latin-script text. Catches Spanish, French,
       Indonesian, Urdu-in-Latin-script, etc. that Layer 2 cannot detect.
       Confidence contribution: 0.70 when confident (>= 0.70 Lingua score).
- 
+
     Final thresholds:
       confidence >= 0.85 → REJECTED  (hidden from catalog)
       confidence >= 0.50 → FLAGGED   (visible, held for human review)
       confidence <  0.50 → ACCEPTED  (English confirmed)
- 
+
     Rule 9: Pure — no DB access, no side effects.
     Rule 14: One job — detect language and return status + reason.
     """
- 
+
     def __init__(self):
         self._lingua_detector = None
         self._lingua_available = None
- 
+
     def _get_lingua_detector(self):
         """Initialise the Lingua detector on first call. Returns None if not installed."""
         if self._lingua_available is False:
             return None
         if self._lingua_detector is not None:
             return self._lingua_detector
- 
+
         try:
             from lingua import Language, LanguageDetectorBuilder
- 
+
             languages = [
                 Language.ENGLISH,
                 Language.ARABIC,
@@ -349,7 +438,7 @@ class LanguageDetector:
                 Language.BENGALI,
                 Language.PERSIAN,
             ]
- 
+
             self._lingua_detector = (
                 LanguageDetectorBuilder
                 .from_languages(*languages)
@@ -358,7 +447,7 @@ class LanguageDetector:
             )
             self._lingua_available = True
             logger.debug("LanguageDetector: Lingua detector initialised successfully.")
- 
+
         except ImportError:
             self._lingua_available = False
             logger.warning(
@@ -366,9 +455,9 @@ class LanguageDetector:
                 "Layer 3 (Lingua) will be skipped. "
                 "Install with: pip install lingua-language-detector"
             )
- 
+
         return self._lingua_detector
- 
+
     def detect(
         self,
         title: str,
@@ -378,14 +467,14 @@ class LanguageDetector:
     ) -> dict:
         """
         Run the four-layer pipeline on a course's text content.
- 
+
         Args:
             title: Course title
             description: Short or full description (whichever is available)
             metadata_language: ISO 639-1 code from source metadata (e.g. 'en', 'ar')
             audio_language: defaultAudioLanguage from YouTube API (YouTube only).
                             Takes precedence over metadata_language in Layer 1.
- 
+
         Returns:
         {
             "language_status": "accepted" | "flagged" | "rejected",
@@ -397,9 +486,9 @@ class LanguageDetector:
         confidence = 0.0
         layers_triggered = []
         reason_parts = []
- 
+
         text = f"{title} {description}".strip()
- 
+
         # ── Layer 0: Thin content detection ───────────────────────────────────
         # When there is not enough text to make a language determination,
         # flag the course for human review rather than silently accepting it.
@@ -419,7 +508,7 @@ class LanguageDetector:
         desc_stripped = description.strip()
         is_thin_title = len(title_stripped) <= THIN_TITLE_MAX_CHARS
         is_empty_desc = len(desc_stripped) < THIN_DESCRIPTION_MIN_CHARS
- 
+
         if is_thin_title and is_empty_desc:
             confidence += LAYER_THIN_CONTENT
             layers_triggered.append("thin_content")
@@ -435,7 +524,7 @@ class LanguageDetector:
                 len(desc_stripped),
                 LAYER_THIN_CONTENT,
             )
- 
+
         # ── Layer 1: Metadata / audio language field ──────────────────────────
         # Priority: audio_language (YouTube's defaultAudioLanguage) over
         # metadata_language (the generic language field).
@@ -448,7 +537,7 @@ class LanguageDetector:
         # fallback. Low trust because the normalizer previously defaulted
         # everything to 'en' when no language was provided by the source.
         effective_language = (audio_language or metadata_language or "").strip().lower()[:2]
- 
+
         if effective_language and effective_language != "en":
             if effective_language in NON_ENGLISH_LANGUAGE_CODES:
                 confidence += LAYER_METADATA_NON_ENGLISH
@@ -465,7 +554,7 @@ class LanguageDetector:
                     effective_language,
                     LAYER_METADATA_NON_ENGLISH,
                 )
- 
+
         # ── Layer 2: Unicode script detection ────────────────────────────────
         script_result = self._detect_non_latin_script(text)
         if script_result["triggered"]:
@@ -481,7 +570,7 @@ class LanguageDetector:
                 script_result["ratio"],
                 LAYER_UNICODE_SCRIPT,
             )
- 
+
         # ── Layer 3: Lingua language detection ───────────────────────────────
         # Only runs if there is enough text for Lingua to be reliable.
         # Lingua needs meaningful words — very short text gives unreliable results.
@@ -503,7 +592,7 @@ class LanguageDetector:
                     lingua_result["confidence"],
                     LAYER_LINGUA_DETECTION,
                 )
- 
+
         # ── Final decision ────────────────────────────────────────────────────
         if confidence >= REJECT_THRESHOLD:
             status = Course.LanguageStatus.REJECTED
@@ -520,27 +609,27 @@ class LanguageDetector:
         else:
             status = Course.LanguageStatus.ACCEPTED
             rejection_reason = ""
- 
+
         return {
             "language_status": status,
             "language_rejection_reason": rejection_reason,
             "confidence": confidence,
             "layers_triggered": layers_triggered,
         }
- 
+
     def _detect_non_latin_script(self, text: str) -> dict:
         """Layer 2: Count characters in non-Latin Unicode blocks."""
         if not text:
             return {"triggered": False, "dominant_script": "", "ratio": 0.0}
- 
+
         alpha_chars = [c for c in text if unicodedata.category(c).startswith("L")]
- 
+
         if not alpha_chars:
             return {"triggered": False, "dominant_script": "", "ratio": 0.0}
- 
+
         script_counts: dict[str, int] = {}
         non_latin_total = 0
- 
+
         for char in alpha_chars:
             cp = ord(char)
             for start, end, script_name in NON_LATIN_BLOCKS:
@@ -548,49 +637,49 @@ class LanguageDetector:
                     script_counts[script_name] = script_counts.get(script_name, 0) + 1
                     non_latin_total += 1
                     break
- 
+
         ratio = non_latin_total / len(alpha_chars)
- 
+
         if ratio < NON_LATIN_RATIO_THRESHOLD:
             return {"triggered": False, "dominant_script": "", "ratio": ratio}
- 
+
         dominant = max(script_counts, key=script_counts.get) if script_counts else "unknown"
         return {"triggered": True, "dominant_script": dominant, "ratio": ratio}
- 
+
     def _detect_with_lingua(self, text: str) -> dict:
         """Layer 3: Use Lingua to detect the language of Latin-script text."""
         detector = self._get_lingua_detector()
         if detector is None:
             return {"triggered": False, "language": "", "confidence": 0.0}
- 
+
         try:
             result = detector.detect_language_of(text)
- 
+
             if result is None:
                 return {"triggered": False, "language": "", "confidence": 0.0}
- 
+
             confidence_values = detector.compute_language_confidence_values(text)
             detected_confidence = 0.0
             detected_name = result.name.lower()
- 
+
             for cv in confidence_values:
                 if cv.language == result:
                     detected_confidence = cv.value
                     break
- 
+
             if result.name != "ENGLISH" and detected_confidence >= 0.70:
                 return {
                     "triggered": True,
                     "language": detected_name,
                     "confidence": detected_confidence,
                 }
- 
+
             return {
                 "triggered": False,
                 "language": detected_name,
                 "confidence": detected_confidence,
             }
- 
+
         except Exception as exc:
             logger.warning(
                 "LanguageDetector._detect_with_lingua: Lingua raised an exception: %s. "
@@ -598,19 +687,19 @@ class LanguageDetector:
                 exc,
             )
             return {"triggered": False, "language": "", "confidence": 0.0}
- 
- 
+
+
 # ─── Normalizer ───────────────────────────────────────────────────────────────
- 
+
 class CourseNormalizer:
     """
     Transforms a RawCourse into a NormalizedCourse.
     Pure transformation — no DB access, no external API calls.
     """
- 
+
     def __init__(self):
         self._language_detector = LanguageDetector()
- 
+
     def normalize(self, raw: RawCourse) -> NormalizedCourse | None:
         """
         Convert a RawCourse into a NormalizedCourse.
@@ -625,7 +714,7 @@ class CourseNormalizer:
                 raw.source_url,
             )
             return None
- 
+
         provider = self._normalize_provider(raw.provider)
         if not provider:
             logger.warning(
@@ -634,15 +723,15 @@ class CourseNormalizer:
                 raw.title,
             )
             return None
- 
+
         provider_type = PROVIDER_TYPE_MAP.get(provider, Course.ProviderType.LEARNING_PLATFORM)
         search_text = f"{raw.title} {raw.short_description} {raw.full_description}".lower()
- 
+
         category = self._normalize_category(raw.category, search_text)
         level = self._normalize_level(raw.level, search_text)
         age_group = self._normalize_age_group(raw.age_group, level)
         format_ = self._normalize_format(raw.format)
- 
+
         title = raw.title.strip()[:500]
         short_description = (raw.short_description or "").strip()[:300]
         full_description = (raw.full_description or "").strip()
@@ -650,23 +739,23 @@ class CourseNormalizer:
         language = (raw.language or "").strip()[:10]
         thumbnail_url = (raw.thumbnail_url or "").strip()
         sub_category = (raw.sub_category or "").strip()[:100]
- 
+
         duration_hours = max(0, int(raw.duration_hours or 0))
         duration_minutes = max(0, int(raw.duration_minutes or 0))
         rating_average = max(0.0, float(raw.rating_average or 0.0))
         rating_count = max(0, int(raw.rating_count or 0))
- 
+
         tags = self._sanitize_string_list(raw.tags)
         learning_outcomes = self._sanitize_string_list(raw.learning_outcomes)
         prerequisites = self._sanitize_string_list(raw.prerequisites)
- 
+
         # ── Language quality pipeline ─────────────────────────────────────────
         # Extract audio_language from raw_payload for YouTube courses.
         # This is defaultAudioLanguage from the YouTube API — the spoken
         # language of the content, not just the metadata language.
         raw_payload = getattr(raw, "raw_payload", {}) or {}
         audio_language = raw_payload.get("audio_language", "") or ""
- 
+
         detection_text = short_description or full_description or ""
         lang_result = self._language_detector.detect(
             title=title,
@@ -674,7 +763,7 @@ class CourseNormalizer:
             metadata_language=language,
             audio_language=audio_language,
         )
- 
+
         if lang_result["language_status"] == Course.LanguageStatus.REJECTED:
             logger.warning(
                 "CourseNormalizer.normalize: REJECTED by language pipeline. "
@@ -687,7 +776,7 @@ class CourseNormalizer:
                 "title='%s' provider='%s' reason='%s'",
                 title, provider, lang_result["language_rejection_reason"],
             )
- 
+
         source_metadata = {
             "original_title": raw.title,
             "original_description": raw.full_description or raw.short_description,
@@ -695,7 +784,7 @@ class CourseNormalizer:
             "external_id": raw.external_id,
             "raw_payload": raw_payload,
         }
- 
+
         return NormalizedCourse(
             title=title,
             short_description=short_description,
@@ -725,12 +814,12 @@ class CourseNormalizer:
             language_status=lang_result["language_status"],
             language_rejection_reason=lang_result["language_rejection_reason"],
         )
- 
+
     # ─── Private: Field Normalizers ───────────────────────────────────────────
- 
+
     def _normalize_provider(self, raw_provider: str) -> str | None:
         return PROVIDER_MAP.get(raw_provider)
- 
+
     def _normalize_category(self, raw_category: str, search_text: str) -> str:
         if raw_category in VALID_CATEGORIES:
             return raw_category
@@ -742,7 +831,7 @@ class CourseNormalizer:
             "from raw='%s'. Defaulting to STEM_FOUNDATIONS.", raw_category,
         )
         return Course.Category.STEM_FOUNDATIONS
- 
+
     def _normalize_level(self, raw_level: str, search_text: str) -> str:
         if raw_level:
             normalized = LEVEL_MAP.get(raw_level.lower().strip())
@@ -752,7 +841,7 @@ class CourseNormalizer:
             if keyword in search_text:
                 return level
         return Course.Level.BEGINNER
- 
+
     def _normalize_age_group(self, raw_age_group: str, level: str) -> str:
         if raw_age_group:
             normalized = AGE_GROUP_MAP.get(raw_age_group.lower().strip())
@@ -761,14 +850,13 @@ class CourseNormalizer:
         if level == Course.Level.ADVANCED:
             return Course.AgeGroup.ADULTS
         return Course.AgeGroup.ADULTS
- 
+
     def _normalize_format(self, raw_format: str) -> str:
         if raw_format in VALID_FORMATS:
             return raw_format
         return Course.Format.VIDEO
- 
+
     def _sanitize_string_list(self, raw_list: Any) -> list[str]:
         if not raw_list or not isinstance(raw_list, list):
             return []
         return [item.strip() for item in raw_list if isinstance(item, str) and item.strip()]
- 
