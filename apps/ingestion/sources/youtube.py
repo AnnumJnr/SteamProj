@@ -12,7 +12,7 @@ API constraints (master reference §2):
 Quota budget per run (default):
 - Up to 50 search queries × 100 units = 5,000 units
 - Remaining budget used for playlist detail calls (1 unit each)
-- Conservative default: 10 queries per run to leave headroom for other systems.
+- Conservative default: 25 queries per run to leave headroom for other systems.
 
 Changes from Phase 3:
 - _item_to_raw_course() now extracts defaultAudioLanguage and defaultLanguage
@@ -22,6 +22,14 @@ Changes from Phase 3:
 - defaultAudioLanguage is preferred over defaultLanguage because it reflects
   the actual spoken language of the content, not just the metadata language.
   YouTube populates this field when the channel owner tags their audio language.
+
+Changes from v2 (AI category):
+- Added 15 AI-focused search queries covering beginner general AI, intermediate
+  deep learning / neural networks / computer vision, and modern AI workflows
+  (agents, LangChain, prompt engineering, generative AI, LLMs, RAG).
+- Total queries now 25 → 2,500 quota units per run. Daily quota is 10,000
+  units, so this leaves headroom for up to 4 pipeline runs per day plus
+  detail calls.
 
 Rule 2: Every fallback is documented with full comment block.
 Rule 8: Every fetch step is logged.
@@ -45,7 +53,12 @@ YOUTUBE_PROVIDER = "YouTube"
 
 # Search terms used to find STEM playlists and course series.
 # These are intentionally broad — the normalizer applies category mapping.
+#
+# Ordering note: AI queries are placed after the core STEM block to keep the
+# list scannable. Order has no effect on API behaviour or quota — each query
+# is a separate search.list call regardless of position.
 STEM_SEARCH_QUERIES = [
+    # ── Core STEM ──
     "python programming tutorial course",
     "mathematics lecture series",
     "physics course for beginners",
@@ -56,6 +69,27 @@ STEM_SEARCH_QUERIES = [
     "algebra mathematics course",
     "calculus tutorial series",
     "data science beginner course",
+
+    # ── AI — beginner and general ──
+    "artificial intelligence for beginners",
+    "machine learning tutorial course",
+    "introduction to artificial intelligence",
+    "how to use ai for productivity",
+    "ai tools tutorial course",
+
+    # ── AI — intermediate and applied ──
+    "deep learning tutorial course",
+    "neural networks explained",
+    "natural language processing course",
+    "computer vision tutorial",
+
+    # ── AI — agents and modern workflows ──
+    "ai agents tutorial",
+    "langchain course for beginners",
+    "prompt engineering course",
+    "generative ai course",
+    "llm tutorial course",
+    "retrieval augmented generation tutorial",
 ]
 
 # Max results per search query (YouTube API max is 50, costs 100 units per call)

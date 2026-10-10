@@ -14,6 +14,7 @@ export interface FilterOption {
 
 export const STEM_CATEGORIES: FilterOption[] = [
   { label: "Computer Science", value: "Computer Science" },
+  { label: "Artificial Intelligence", value: "AI" },
   { label: "Mathematics", value: "Mathematics" },
   { label: "Natural Sciences", value: "Natural Sciences" },
   { label: "Engineering", value: "Engineering" },
