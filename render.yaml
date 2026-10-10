@@ -38,6 +38,39 @@ services:
       - key: SENTRY_DSN
         sync: false
 
+  # Scheduled ingestion: calls the pipeline directly via a management
+  # command — no Celery worker or Redis broker involved. Free-plan cron
+  # jobs run at most once per day, which suits idempotent upserts.
+  # Schedule is UTC: 02:00 daily.
+  - type: cron
+    name: stempath-ingestion
+    runtime: python
+    plan: free
+    schedule: "0 2 * * *"
+    buildCommand: pip install -r requirements/production.txt
+    startCommand: python manage.py ingest --settings=core.settings.production
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings.production
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      # Use the same DB values as stempath-api; DB_HOST must be the
+      # INTERNAL hostname (dpg-xxxxx) — the cron service runs on
+      # Render's network, like the API.
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      # YouTube ingestion fails (by design, logged per run) without it.
+      - key: YOUTUBE_API_KEY
+        sync: false
+
   - type: web
     name: stempath-frontend
     runtime: node
