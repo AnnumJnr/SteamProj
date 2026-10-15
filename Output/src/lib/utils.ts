@@ -32,20 +32,29 @@ export function truncate(str: string, maxLength: number): string {
 }
 
 /**
- * Extracts a YouTube video ID from any YouTube URL format.
+ * What kind of YouTube player to embed, and the ID to embed it with.
+ *  video    → https://www.youtube.com/embed/<id>
+ *  playlist → https://www.youtube.com/embed/videoseries?list=<id>
+ */
+export type YouTubeEmbed =
+  | { type: "video"; id: string }
+  | { type: "playlist"; id: string };
+
+/**
+ * Extracts the embeddable YouTube target from any YouTube URL format.
  *
  * Handles all URL shapes that the ingestion pipeline produces:
- *   https://www.youtube.com/watch?v=abc123
- *   https://youtube.com/watch?v=abc123
- *   https://youtu.be/abc123
- *   https://www.youtube.com/embed/abc123
- *   https://www.youtube.com/playlist?list=PLxxx  → returns null (playlist, not video)
+ *   https://www.youtube.com/watch?v=abc123        → video
+ *   https://youtube.com/watch?v=abc123            → video
+ *   https://youtu.be/abc123                       → video
+ *   https://www.youtube.com/embed/abc123          → video
+ *   https://www.youtube.com/playlist?list=PLxxx   → playlist
  *
- * Fix: the previous version had a corrupted hostname string
- * ("www.youtube.com" was embedded inside a markdown link literal)
- * which caused all www.youtube.com URLs to return null and the embed to never render.
+ * Playlists matter: the ingestion pipeline stores YouTube courses as
+ * playlist URLs, so without playlist support nearly every YouTube course
+ * falls back to a thumbnail instead of an embedded player.
  */
-export function extractYouTubeId(url: string): string | null {
+export function extractYouTubeEmbed(url: string): YouTubeEmbed | null {
   if (!url) return null;
 
   try {
@@ -54,10 +63,10 @@ export function extractYouTubeId(url: string): string | null {
     // Short link: youtu.be/VIDEO_ID
     if (urlObj.hostname === "youtu.be") {
       const id = urlObj.pathname.slice(1).split("/")[0];
-      return id || null;
+      return id ? { type: "video", id } : null;
     }
 
-    // Standard and embed URLs: youtube.com and www.youtube.com
+    // Standard, embed, and playlist URLs: youtube.com and www.youtube.com
     if (
       urlObj.hostname === "www.youtube.com" ||
       urlObj.hostname === "youtube.com"
@@ -65,15 +74,23 @@ export function extractYouTubeId(url: string): string | null {
       // Already an embed URL: /embed/VIDEO_ID
       if (urlObj.pathname.startsWith("/embed/")) {
         const id = urlObj.pathname.split("/embed/")[1]?.split("/")[0];
-        return id || null;
+        return id ? { type: "video", id } : null;
+      }
+
+      // Playlist URL: /playlist?list=PLxxx (no v param)
+      if (urlObj.pathname === "/playlist") {
+        const list = urlObj.searchParams.get("list");
+        return list ? { type: "playlist", id: list } : null;
       }
 
       // Standard watch URL: /watch?v=VIDEO_ID
+      // A playlist param may accompany it; the video takes precedence.
       const v = urlObj.searchParams.get("v");
-      if (v) return v;
+      if (v) return { type: "video", id: v };
 
-      // Playlist-only URLs have no v param — cannot embed as a single video
-      return null;
+      // /watch with only ?list=... (rare) still embeds as a playlist
+      const list = urlObj.searchParams.get("list");
+      return list ? { type: "playlist", id: list } : null;
     }
 
     return null;

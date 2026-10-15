@@ -34,7 +34,7 @@ import { Modal } from "@/components/ui/Modal";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { ROUTES } from "@/constants/routes";
-import { formatDuration, formatRating, formatRatingCount, extractYouTubeId } from "@/lib/utils";
+import { formatDuration, formatRating, formatRatingCount, extractYouTubeEmbed } from "@/lib/utils";
  
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -80,7 +80,7 @@ export default function CourseDetailPage() {
     return <PageContainer><ErrorState title="Course not found" onRetry={() => refetch()} /></PageContainer>;
   }
  
-  const youtubeId = course.provider === "YouTube" ? extractYouTubeId(course.source_url) : null;
+  const youtubeEmbed = course.provider === "YouTube" ? extractYouTubeEmbed(course.source_url) : null;
   const levelVariant = course.level === "Beginner" ? "success" : course.level === "Intermediate" ? "warning" : "danger" as "success" | "warning" | "danger";
  
   return (
@@ -97,13 +97,16 @@ export default function CourseDetailPage() {
  
             {/* Video / thumbnail */}
             <div className="rounded-xl overflow-hidden bg-surface-overlay aspect-video w-full">
-              {youtubeId ? (
-                // DEFAULT: YouTube iframe embed
+              {youtubeEmbed ? (
+                // DEFAULT: YouTube iframe embed — single video, or the
+                // playlist player (videoseries) for playlist-sourced courses
                 // FALLBACK: "Open on YouTube" button in action card
                 // CONDITION: Embed blocked by network/browser
                 // ACTION: Opens source_url in new tab
                 <iframe
-                  src={`https://www.youtube.com/embed/${youtubeId}`}
+                  src={youtubeEmbed.type === "playlist"
+                    ? `https://www.youtube.com/embed/videoseries?list=${youtubeEmbed.id}`
+                    : `https://www.youtube.com/embed/${youtubeEmbed.id}`}
                   title={course.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
