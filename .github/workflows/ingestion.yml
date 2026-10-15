@@ -43,10 +43,10 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-          cache-dependency-path: requirements/production.txt
+          cache-dependency-path: backend/requirements/production.txt
 
       - name: Install dependencies
-        run: pip install -r requirements/production.txt
+        run: pip install -r backend/requirements/production.txt
 
       # Step-level env is the injection-safe way to hand the secret to the
       # shell; the value itself never appears in this file or in logs.
@@ -60,4 +60,4 @@ jobs:
           set +a
 
       - name: Run ingestion
-        run: python manage.py ingest --settings=core.settings.production
+        run: python backend/manage.py ingest --settings=core.settings.production
