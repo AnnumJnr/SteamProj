@@ -6,21 +6,43 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // Apply X-Frame-Options everywhere EXCEPT course detail pages.
+        // Course detail pages embed YouTube iframes — X-Frame-Options: SAMEORIGIN
+        // blocks cross-origin iframes including the YouTube player itself.
+        source: "/((?!courses/).*)",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          // Next.js' default COOP (same-origin) blocks the cross-origin
-          // window.postMessage calls Google Identity Services relies on.
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+        ],
+      },
+      {
+        // All pages: CSP and COOP headers.
+        // frame-src permits YouTube embed player.
+        // Cross-Origin-Opener-Policy permits Google Sign-In popups.
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https: blob:",
+              "frame-src 'self' https://www.youtube.com https://youtube.com https://accounts.google.com",
+              "connect-src 'self' https://stempath-api.onrender.com https://app.posthog.com http://localhost:8000",
+              "media-src 'self' https://www.youtube.com https://youtube.com",
+            ].join("; "),
+          },
         ],
       },
     ];
   },
 
   images: {
-    // Disable server-side image optimization for external URLs.
-    // YouTube thumbnails (i.ytimg.com) are fetched client-side in the browser,
-    // not by the Next.js server process — avoids ENOTFOUND errors in dev.
     unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "img.youtube.com" },
