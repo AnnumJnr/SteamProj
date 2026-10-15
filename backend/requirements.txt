@@ -16,3 +16,5 @@ Pillow
 cryptography
 google-auth
 lingua-language-detector
+gunicorn
+whitenoise
