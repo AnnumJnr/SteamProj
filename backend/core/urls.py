@@ -6,11 +6,13 @@ API versioning via /api/v1/ prefix applied to all app routes.
 
 from django.contrib import admin
 from django.urls import path, include
+from core.views import health_check
 from django.conf import settings
 
 urlpatterns = [
     # Django admin — MVP admin panel
     path("admin/", admin.site.urls),
+    path("health/", health_check, name="health-check"),
 
     # Authentication endpoints
     path("api/v1/auth/", include("apps.users.urls")),
