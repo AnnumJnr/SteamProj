@@ -117,6 +117,10 @@ class NormalizedCourse:
     # Preserved original data — written once, never modified
     source_metadata: dict = field(default_factory=dict)
 
+    # Per-video playlist items, passed through verbatim from RawCourse.
+    # Persisted to CourseVideoItem by the ingestion service, not Course.
+    video_items: list = field(default_factory=list)
+
 
 # ─── Mapping Tables ───────────────────────────────────────────────────────────
 
@@ -811,6 +815,7 @@ class CourseNormalizer:
             certificate_available=bool(raw.certificate_available),
             external_id=raw.external_id,
             source_metadata=source_metadata,
+            video_items=raw.video_items,
             language_status=lang_result["language_status"],
             language_rejection_reason=lang_result["language_rejection_reason"],
         )

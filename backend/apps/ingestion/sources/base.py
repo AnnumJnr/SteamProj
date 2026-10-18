@@ -72,6 +72,12 @@ class RawCourse:
     # Source-specific raw payload — preserved verbatim in source_metadata
     raw_payload: dict = field(default_factory=dict)
 
+    # Per-video items for playlist-backed courses (YouTube playlistItems).
+    # List of dicts: {video_id, title, position, thumbnail_url,
+    # duration_seconds, published_at}. Empty for non-playlist sources.
+    # Not part of Course — persisted to CourseVideoItem by the service layer.
+    video_items: list = field(default_factory=list)
+
 
 # ─── Fetch Result Container ───────────────────────────────────────────────────
 

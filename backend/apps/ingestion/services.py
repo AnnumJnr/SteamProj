@@ -33,7 +33,7 @@ from datetime import datetime, timezone
 
 from django.db import IntegrityError, transaction
 
-from apps.courses.models import Course
+from apps.courses.models import Course, CourseVideoItem
 from apps.ingestion.models import IngestionLog
 from apps.ingestion.normalizer import NormalizedCourse
 
@@ -137,6 +137,9 @@ class CourseIngestionService:
                         provider,
                         external_id,
                     )
+                    VideoItemService.replace_for_course(
+                        existing, normalized.video_items
+                    )
                     return existing, False
 
                 else:
@@ -181,6 +184,9 @@ class CourseIngestionService:
                         provider,
                         external_id,
                         normalized.language_status,
+                    )
+                    VideoItemService.replace_for_course(
+                        course, normalized.video_items
                     )
                     return course, True
 
@@ -315,3 +321,63 @@ class IngestionLogService:
             error_message,
         )
         return log
+
+class VideoItemService:
+    """
+    Writes for CourseVideoItem — the per-video playlist items of a course.
+
+    Called only from CourseIngestionService.upsert_course (Rule 15).
+
+    Strategy: replace-all per course. Playlist order and membership change
+    on YouTube; a diff-based upsert buys nothing for a nightly batch.
+    delete + bulk_create is idempotent and keeps positions exact.
+    """
+
+    @staticmethod
+    def replace_for_course(course: Course, video_items: list[dict]) -> int:
+        """
+        Replace the stored video items for a course.
+
+        Empty video_items is a no-op — it must NOT wipe existing items,
+        because a playlistItems fetch failure keeps the course in the run
+        with an empty list.
+        """
+        if not video_items:
+            return 0
+
+        from datetime import datetime, timezone as tz
+
+        rows = []
+        for item in video_items:
+            published_raw = item.get("published_at") or ""
+            published_at = None
+            if published_raw:
+                try:
+                    published_at = datetime.fromisoformat(
+                        published_raw.replace("Z", "+00:00")
+                    )
+                except ValueError:
+                    published_at = None
+
+            rows.append(
+                CourseVideoItem(
+                    course=course,
+                    video_id=item["video_id"],
+                    title=item.get("title", "")[:500],
+                    position=item.get("position", 0),
+                    thumbnail_url=item.get("thumbnail_url", ""),
+                    duration_seconds=item.get("duration_seconds"),
+                    published_at=published_at,
+                )
+            )
+
+        with transaction.atomic():
+            CourseVideoItem.objects.filter(course=course).delete()
+            CourseVideoItem.objects.bulk_create(rows, batch_size=500)
+
+        logger.debug(
+            "VideoItemService.replace_for_course: Stored %d items for '%s'",
+            len(rows),
+            course.title,
+        )
+        return len(rows)
