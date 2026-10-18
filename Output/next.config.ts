@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.43.5"],
 
+  // Pin the workspace root. Without this, Next.js/Turbopack infers the root
+  // by walking up for lockfiles — a stray package-lock.json in the parent
+  // folder makes it pick the WRONG directory and mis-resolve font modules.
+  turbopack: {
+    root: __dirname,
+  },
+
   async headers() {
     return [
       {
