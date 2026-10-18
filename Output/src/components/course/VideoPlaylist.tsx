@@ -19,6 +19,7 @@ interface VideoPlaylistProps {
 
 function formatSeconds(seconds: number | null): string | null {
   if (seconds === null || seconds <= 0) return null;
+  if (seconds < 60) return `${Math.round(seconds)}s`;
   const m = Math.floor(seconds / 60);
   const s = Math.round(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
@@ -90,7 +91,7 @@ export function VideoPlaylist({
                   </span>
                   {(duration || completed) && (
                     <span className="mt-0.5 block text-[10px] text-text-muted">
-                      {duration ? `${duration} min` : ""}
+                      {duration ?? ""}
                     </span>
                   )}
                 </span>
