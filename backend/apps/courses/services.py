@@ -13,10 +13,12 @@ Rules enforced:
 
 import logging
 
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import QuerySet
 
 from apps.courses.models import Course
 from apps.courses.querysets import CourseQueryset
+from apps.progress.querysets import UserProgressQueryset
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,45 @@ class CourseService:
         Called by: ComboDetailView when serializing course list.
         """
         return CourseQueryset.get_by_combo(combo_id)
+
+    @staticmethod
+    def get_unlocked_course_ids(user) -> set:
+        """
+        Return the set of course IDs a user may watch (video gate unlocked).
+
+        Gate rule: the user is authenticated AND has an active non-unenrolled
+        progress record for the course (in_progress or completed). Anonymous
+        users get an empty set — every YouTube course is locked.
+
+        MULTI-USE: Used by courses, progress, and combos views to prime
+        serializer context. Changes here affect all of those endpoints.
+        """
+        if isinstance(user, AnonymousUser) or not getattr(user, "is_authenticated", False):
+            return set()
+        return UserProgressQueryset.get_started_course_ids_for_user(user.pk)
+
+    @staticmethod
+    def access_context(user) -> dict:
+        """
+        Build the serializer context key that carries the video gate.
+
+        Serializers receive this via context["unlocked_course_ids"]; a missing
+        key is treated as "nothing unlocked", so every view that renders
+        course data MUST call this and merge it into the serializer context.
+
+        Called by: all views that serialize courses (courses/, progress/, combos/).
+        """
+        return {"unlocked_course_ids": CourseService.get_unlocked_course_ids(user)}
+
+    @staticmethod
+    def get_course_videos(course: Course) -> QuerySet:
+        """
+        Return the stored playlist videos of a course, in playlist order.
+
+        Called by: CourseDetailSerializer — must only be called when the
+        video gate is unlocked (view/service responsibility, Rule 15).
+        """
+        return course.video_items.all()
 
     @staticmethod
     def deactivate_course(course: Course) -> Course:

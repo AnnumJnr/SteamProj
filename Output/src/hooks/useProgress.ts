@@ -35,6 +35,9 @@ export function useStartCourse() {
     onSuccess: (_, courseId) => {
       qc.invalidateQueries({ queryKey: queryKeys.progress.all });
       qc.invalidateQueries({ queryKey: queryKeys.progress.course(courseId) });
+      // Starting a course also unlocks its video gate server-side — the
+      // detail payload changes (videos + source_url served), so refetch it.
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) });
     },
   });
 }
@@ -61,6 +64,9 @@ export function useUnenrollCourse() {
       qc.invalidateQueries({ queryKey: queryKeys.progress.all });
       qc.invalidateQueries({ queryKey: queryKeys.progress.course(courseId) });
       qc.invalidateQueries({ queryKey: queryKeys.combos.all });
+      // Unenrolling re-locks the video gate server-side — refetch the detail
+      // payload so the player locks again without a stale unlocked cache.
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) });
     },
   });
 }

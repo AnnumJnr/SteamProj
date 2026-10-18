@@ -2,17 +2,21 @@
  * app/courses/[id]/page.tsx
  * Course detail page. Shows full course info + embedded YouTube player (with fallback).
  *
- * YouTube embed strategy (per master reference §3):
- *   DEFAULT:  Embed via <iframe> using the YouTube embed URL
+ * Video gate (matches backend apps/courses → VideoGateMixin):
+ *   LOCKED:    Server sends blank source_url, empty videos, video_access_granted=false
+ *              → cover art + lock overlay; starting the course unlocks it.
+ *   UNLOCKED:  Server sends the stored playlist items → lesson sidebar +
+ *              per-video embed. Anonymous users see a "Log in to start" CTA.
+ *
  *   FALLBACK: If embed fails or provider is not YouTube, redirect link to source_url in new tab
- *             FALLBACK comment below marks this location per Rule 2.
+ *             (source_url only exists post-unlock — see handleStartCourse + useStartCourse invalidation).
  *
  * Analytics: COURSE_VIEWED is fired on mount (OWNER: frontend, per constants/events.ts)
  *
  * Actions available:
- * - Open on provider (always visible)
+ * - Open on provider (only when unlocked)
  * - Mark as Started / Mark as Complete (authenticated)
- * - Unenroll — DELETE /progress/{course_id}/ — removes all progress
+ * - Unenroll — DELETE /progress/{course_id}/ — removes all progress (re-locks the gate)
  * - Save / Unsave — DELETE /progress/saved/courses/{course_id}/ using COURSE id
  */
  
@@ -28,6 +32,7 @@ import { useSaveCourse, useSavedCourses, useUnsaveCourse } from "@/hooks/useSave
 import { useAuth } from "@/hooks/useAuth";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
+import { VideoPlaylist } from "@/components/course/VideoPlaylist";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
@@ -50,7 +55,8 @@ export default function CourseDetailPage() {
   const [showUnenrollModal, setShowUnenrollModal] = useState(false);
   const [hasStartedLocally, setHasStartedLocally] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
- 
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+
   // Check saved status using course id directly
   const isSaved = savedCoursesData?.results?.some((s) => s.course.id === id) ?? false;
   const hasActiveProgress = Boolean(courseProgress);
@@ -79,9 +85,53 @@ export default function CourseDetailPage() {
   if (isError || !course) {
     return <PageContainer><ErrorState title="Course not found" onRetry={() => refetch()} /></PageContainer>;
   }
- 
-  const youtubeEmbed = course.provider === "YouTube" ? extractYouTubeEmbed(course.source_url) : null;
+
+  // ─── Video gate ───────────────────────────────────────────────────────────
+  // The API only serves embed data (source_url / videos) once the user has
+  // started the course. Everything below derives from what the server sent:
+  // a locked response carries a blank source_url and no videos.
+  const isYouTube = course.provider === "YouTube";
+  const unlocked = course.video_access_granted;
+  const youtubeEmbed = isYouTube && unlocked
+    ? extractYouTubeEmbed(course.source_url)
+    : null;
+  const playlistVideos = isYouTube ? course.videos : [];
+
+  // Active video: the user's pick, falling back to the first lesson
+  const activeVideoId =
+    selectedVideoId && playlistVideos.some((v) => v.video_id === selectedVideoId)
+      ? selectedVideoId
+      : playlistVideos[0]?.video_id ?? null;
+  const activeVideo = playlistVideos.find((v) => v.video_id === activeVideoId) ?? null;
+
+  // youtubeEmbedSrc — what to mount in the iframe (null → locked/fallback art)
+  // PRIORITY 1: Stored playlist lesson (videos served by the API)
+  // PRIORITY 2: Coarse playlist embed via source_url (items not ingested yet)
+  // PRIORITY 3: null → locked overlay for YouTube, thumbnail otherwise
+  const youtubeEmbedSrc = isYouTube
+    ? activeVideoId
+      ? youtubeEmbed?.type === "playlist"
+        ? `https://www.youtube.com/embed/videoseries?list=${youtubeEmbed.id}&index=${(activeVideo?.position ?? 0) + 1}`
+        : `https://www.youtube.com/embed/${activeVideoId}`
+      : youtubeEmbed
+        ? `https://www.youtube.com/embed/${youtubeEmbed.type === "playlist" ? `videoseries?list=${youtubeEmbed.id}` : youtubeEmbed.id}`
+        : null
+    : null;
+
+  const locked = isYouTube && !unlocked;
+
   const levelVariant = course.level === "Beginner" ? "success" : course.level === "Intermediate" ? "warning" : "danger" as "success" | "warning" | "danger";
+
+  const handleStartCourse = () => {
+    startCourse(id, {
+      onSuccess: () => {
+        setHasStartedLocally(true);
+        showMessage("Course started — lessons unlocked");
+        // The course payload unlocks server-side; hook invalidation refetches it
+      },
+      onError: () => showMessage("Could not start this course. Please try again."),
+    });
+  };
  
   return (
     <PageContainer>
@@ -97,21 +147,54 @@ export default function CourseDetailPage() {
  
             {/* Video / thumbnail */}
             <div className="rounded-xl overflow-hidden bg-surface-overlay aspect-video w-full">
-              {youtubeEmbed ? (
-                // DEFAULT: YouTube iframe embed — single video, or the
-                // playlist player (videoseries) for playlist-sourced courses
-                // FALLBACK: "Open on YouTube" button in action card
+              {youtubeEmbedSrc ? (
+                // DEFAULT: YouTube iframe embed — the selected playlist lesson
+                // (or playlist player for courses whose items aren't ingested yet)
+                // FALLBACK: "Open on YouTube" button in action card (post-start)
                 // CONDITION: Embed blocked by network/browser
                 // ACTION: Opens source_url in new tab
                 <iframe
-                  src={youtubeEmbed.type === "playlist"
-                    ? `https://www.youtube.com/embed/videoseries?list=${youtubeEmbed.id}`
-                    : `https://www.youtube.com/embed/${youtubeEmbed.id}`}
+                  key={youtubeEmbedSrc}
+                  src={youtubeEmbedSrc}
                   title={course.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full border-0"
                 />
+              ) : locked ? (
+                // GATE: Locked — the course hasn't been started, so the embed
+                // is unavailable. Show cover art + the unlock action.
+                <div className="relative w-full h-full">
+                  {course.thumbnail_url ? (
+                    <Image src={course.thumbnail_url} alt={course.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 66vw" unoptimized />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-surface-raised">
+                      <svg className="w-16 h-16 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-surface-base/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-6 text-center">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Start this course to watch</p>
+                      <p className="text-xs text-text-secondary mt-1">All lessons and the playlist unlock once you begin.</p>
+                    </div>
+                    {isAuthenticated ? (
+                      <Button variant="primary" isLoading={isStarting} onClick={handleStartCourse}>
+                        Start course
+                      </Button>
+                    ) : (
+                      <Link href={ROUTES.LOGIN}>
+                        <Button variant="primary">Log in to start</Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
               ) : course.thumbnail_url ? (
                 <div className="relative w-full h-full">
                   <Image src={course.thumbnail_url} alt={course.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 66vw" unoptimized />
@@ -124,7 +207,14 @@ export default function CourseDetailPage() {
                 </div>
               )}
             </div>
- 
+
+            {/* Playlist sidebar — only for unlocked playlist courses */}
+            <VideoPlaylist
+              videos={playlistVideos}
+              activeId={activeVideoId}
+              onSelect={(videoId) => setSelectedVideoId(videoId)}
+            />
+
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 <Badge variant="primary">{course.provider}</Badge>
