@@ -180,6 +180,22 @@ class YouTubeIngestionSource(BaseIngestionSource):
         except Exception as exc:
             return self._handle_fetch_error(exc, context="fetch_playlist_details")
 
+        # Per-video playlist items — powers the playlist sidebar on the
+        # course page. Non-fatal per playlist: a failed items fetch must not
+        # drop an otherwise healthy course from the run.
+        for raw_course in raw_courses:
+            try:
+                raw_course.video_items = self._fetch_playlist_items(
+                    api_key, raw_course.external_id
+                )
+            except Exception as exc:
+                logger.warning(
+                    "YouTubeIngestionSource.fetch: playlistItems failed for "
+                    "playlist=%s (%s). Course kept without video items.",
+                    raw_course.external_id,
+                    exc,
+                )
+
         logger.info(
             "YouTubeIngestionSource.fetch: Complete. raw_count=%d, built=%d",
             len(playlist_ids),
@@ -316,6 +332,72 @@ class YouTubeIngestionSource(BaseIngestionSource):
                 )
 
         return raw_courses
+
+    # Max videos stored per playlist — caps quota and rows for huge playlists.
+    MAX_PLAYLIST_ITEMS = 200
+
+    def _fetch_playlist_items(self, api_key: str, playlist_id: str) -> list[dict]:
+        """
+        Fetch the videos of one playlist via playlistItems.list.
+
+        Paginated (50 per page, 1 quota unit per page). Returns a list of
+        dicts shaped for CourseVideoItem: {video_id, title, position,
+        thumbnail_url, duration_seconds, published_at}.
+
+        Rule 2 / Rule 9: extraction only — no DB writes, no decisions.
+        """
+        items: list[dict] = []
+        page_token = ""
+
+        while len(items) < self.MAX_PLAYLIST_ITEMS:
+            params = {
+                "key": api_key,
+                "playlistId": playlist_id,
+                "part": "snippet,contentDetails",
+                "maxResults": 50,
+            }
+            if page_token:
+                params["pageToken"] = page_token
+
+            response = requests.get(
+                f"{YOUTUBE_API_BASE}/playlistItems",
+                params=params,
+                timeout=REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            for entry in data.get("items", []):
+                snippet = entry.get("snippet", {})
+                details = entry.get("contentDetails", {})
+                video_id = details.get("videoId") or ""
+                title = snippet.get("title", "") or ""
+                if not video_id or not title:
+                    continue
+
+                thumbnails = snippet.get("thumbnails", {})
+                thumbnail_url = (
+                    thumbnails.get("medium", {}).get("url")
+                    or thumbnails.get("default", {}).get("url")
+                    or ""
+                )
+
+                items.append(
+                    {
+                        "video_id": video_id,
+                        "title": title[:500],
+                        "position": int(snippet.get("position", len(items)) or 0),
+                        "thumbnail_url": thumbnail_url,
+                        "duration_seconds": None,  # not in playlistItems part
+                        "published_at": snippet.get("publishedAt", "") or "",
+                    }
+                )
+
+            page_token = data.get("nextPageToken", "")
+            if not page_token:
+                break
+
+        return items[: self.MAX_PLAYLIST_ITEMS]
 
     def _fetch_playlist_batch(
         self, api_key: str, playlist_ids: list[str]

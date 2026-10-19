@@ -83,6 +83,27 @@ class UserProgressQueryset:
         )
 
     @staticmethod
+    def get_started_course_ids_for_user(user_id) -> set:
+        """
+        Return the set of course IDs the user has actively started —
+        in-progress or completed, and not unenrolled.
+
+        Used by the video-gate: embedded videos and playlist items for these
+        courses may be returned to the user (courses WITHOUT such a record are
+        locked). Empty set = user has started nothing.
+        """
+        return set(
+            UserProgress.objects.filter(
+                user_id=user_id,
+                unenrolled_at__isnull=True,
+                status__in=[
+                    UserProgress.Status.IN_PROGRESS,
+                    UserProgress.Status.COMPLETED,
+                ],
+            ).values_list("course_id", flat=True)
+        )
+
+    @staticmethod
     def get_completed_course_ids_for_user(user_id) -> set:
         """
         Return a set of course IDs that the user has completed.

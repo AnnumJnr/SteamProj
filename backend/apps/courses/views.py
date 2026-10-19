@@ -52,7 +52,9 @@ class CourseListView(APIView):
 
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = CourseListSerializer(page, many=True)
+        # unlocked set backs the video gate in the serializer context
+        unlocked = CourseService.get_unlocked_course_ids(request.user)
+        serializer = CourseListSerializer(page, many=True, context={"unlocked_course_ids": unlocked})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -61,12 +63,15 @@ class CourseDetailView(APIView):
     GET /courses/{id}/
     Return the full detail for a single active course.
 
-    YouTube courses: The source_url field is used by the frontend VideoPlayer component
-    to embed the course. If embedding is blocked, the frontend redirects to source_url.
-    # FALLBACK: Redirect to source_url in a new tab if YouTube embed is blocked
-    # PRIMARY: frontend/components/courses/VideoPlayer.tsx → embed player
-    # CONDITION: YouTube embed blocked by provider or browser policy
-    # THRESHOLD: Not applicable — handled entirely client-side
+    Video gate: for YouTube courses the payload carries embedded playlist
+    data (videos) and source_url ONLY when the requesting user has started
+    the course (active UserProgress record). Anonymous / not-started users
+    get an empty videos list, a blanked source_url and video_access_granted
+    = False — the frontend renders a locked player.
+
+    YouTube courses: The source_url field is used by the frontend VideoPlayer
+    (after unlock) to embed the course. If embedding is blocked, the frontend
+    redirects to source_url.
     """
 
     permission_classes = [AllowAny]
@@ -79,5 +84,9 @@ class CourseDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = CourseDetailSerializer(course)
+        # context carries the video gate state — VideoGateMixin fails closed
+        unlocked = CourseService.get_unlocked_course_ids(request.user)
+        serializer = CourseDetailSerializer(
+            course, context={"unlocked_course_ids": unlocked}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
