@@ -47,7 +47,7 @@ class UserProgressListView(APIView):
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
         serializer = UserProgressSerializer(
-            page, many=True, **CourseService.access_context(request.user)
+            page, many=True, context=CourseService.access_context(request.user)
         )
         return paginator.get_paginated_response(serializer.data)
 
@@ -102,7 +102,7 @@ class MarkCourseStartedView(APIView):
 
         return Response(
             UserProgressSerializer(
-                progress, **CourseService.access_context(request.user)
+                progress, context=CourseService.access_context(request.user)
             ).data,
             status=status.HTTP_200_OK,
         )
@@ -132,7 +132,7 @@ class MarkCourseCompleteView(APIView):
 
         return Response(
             UserProgressSerializer(
-                progress, **CourseService.access_context(request.user)
+                progress, context=CourseService.access_context(request.user)
             ).data,
             status=status.HTTP_200_OK,
         )
@@ -155,7 +155,7 @@ class SavedCoursesListView(APIView):
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
         serializer = SavedCourseSerializer(
-            page, many=True, **CourseService.access_context(request.user)
+            page, many=True, context=CourseService.access_context(request.user)
         )
         return paginator.get_paginated_response(serializer.data)
 
@@ -174,7 +174,7 @@ class SavedCoursesListView(APIView):
 
         return Response(
             SavedCourseSerializer(
-                saved, **CourseService.access_context(request.user)
+                saved, context=CourseService.access_context(request.user)
             ).data,
             status=status.HTTP_201_CREATED,
         )

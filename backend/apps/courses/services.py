@@ -98,11 +98,17 @@ class CourseService:
     @staticmethod
     def access_context(user) -> dict:
         """
-        Build the serializer context key that carries the video gate.
+        Build the serializer context that carries the video gate.
 
         Serializers receive this via context["unlocked_course_ids"]; a missing
         key is treated as "nothing unlocked", so every view that renders
-        course data MUST call this and merge it into the serializer context.
+        course data MUST call this and merge it into the serializer context:
+
+            context=CourseService.access_context(user)          # full context
+            context={"request": ..., **CourseService.access_context(user)}
+
+        MUST be passed as a `context=` keyword — splatting the dict into
+        serializer kwargs raises TypeError (Field.__init__ unexpected kwarg).
 
         Called by: all views that serialize courses (courses/, progress/, combos/).
         """

@@ -102,17 +102,20 @@ export default function CourseDetailPage() {
     selectedVideoId && playlistVideos.some((v) => v.video_id === selectedVideoId)
       ? selectedVideoId
       : playlistVideos[0]?.video_id ?? null;
-  const activeVideo = playlistVideos.find((v) => v.video_id === activeVideoId) ?? null;
 
   // youtubeEmbedSrc — what to mount in the iframe (null → locked/fallback art)
-  // PRIORITY 1: Stored playlist lesson (videos served by the API)
+  // PRIORITY 1: Stored playlist lesson — embed the SELECTED video id with
+  //             ?list= for playlist context ("Next in playlist" works).
+  //             (videoseries?index= is ignored by the embed player — it
+  //             always started from the first video, which is why the
+  //             lesson picker never switched.)
   // PRIORITY 2: Coarse playlist embed via source_url (items not ingested yet)
   // PRIORITY 3: null → locked overlay for YouTube, thumbnail otherwise
   const youtubeEmbedSrc = isYouTube
     ? activeVideoId
-      ? youtubeEmbed?.type === "playlist"
-        ? `https://www.youtube.com/embed/videoseries?list=${youtubeEmbed.id}&index=${(activeVideo?.position ?? 0) + 1}`
-        : `https://www.youtube.com/embed/${activeVideoId}`
+      ? `https://www.youtube.com/embed/${activeVideoId}${
+          youtubeEmbed?.type === "playlist" ? `?list=${youtubeEmbed.id}` : ""
+        }`
       : youtubeEmbed
         ? `https://www.youtube.com/embed/${youtubeEmbed.type === "playlist" ? `videoseries?list=${youtubeEmbed.id}` : youtubeEmbed.id}`
         : null

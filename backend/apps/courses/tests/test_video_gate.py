@@ -172,5 +172,100 @@ class TestAccessService:
         from apps.progress.services import UserProgressService
 
         UserProgressService.mark_course_started(user, course_a.pk)
-        unlocked = CourseService.get_unlocked_course_ids(user)
+        unlocked = CourseService.access_context(user)["unlocked_course_ids"]
         assert unlocked == {course_a.pk}
+
+
+class TestProgressEndpoints:
+    """
+    Regression: progress views previously splatted the gate context into
+    serializer kwargs (TypeError → 500) instead of passing context=.
+    Every serializer-with-course-nesting endpoint must return 200.
+    """
+
+    def _auth_client(self, client: APIClient) -> tuple:
+        user = make_user()  # passwordless user; authenticate directly
+        from apps.progress.services import UserProgressService
+
+        client.force_authenticate(user=user)
+        return client, user
+
+    def test_progress_list_200(self, api_client: APIClient):
+        from apps.progress.services import UserProgressService
+
+        client, user = self._auth_client(api_client)
+        course = make_course()
+        UserProgressService.mark_course_started(user, course.pk)
+
+        response = client.get("/api/v1/progress/")
+        assert response.status_code == 200, response.content
+        item = response.json()["results"][0]
+        assert item["course"]["video_access_granted"] is True
+        assert item["course"]["source_url"] == course.source_url
+
+    def test_start_returns_200_with_unlocked_course(self, api_client: APIClient):
+        from apps.progress.services import UserProgressService
+
+        client, user = self._auth_client(api_client)
+        course = make_course()
+        make_items(course)
+
+        response = client.post(
+            "/api/v1/progress/start/", {"course_id": str(course.pk)}, format="json"
+        )
+        assert response.status_code == 200, response.content
+        assert response.json()["status"] == "in_progress"
+
+    def test_complete_returns_200(self, api_client: APIClient):
+        from apps.progress.services import UserProgressService
+
+        client, user = self._auth_client(api_client)
+        course = make_course()
+        UserProgressService.mark_course_started(user, course.pk)
+
+        response = client.post(
+            "/api/v1/progress/complete/", {"course_id": str(course.pk)}, format="json"
+        )
+        assert response.status_code == 200, response.content
+        assert response.json()["status"] == "completed"
+
+    def test_saved_courses_list_and_save_200(self, api_client: APIClient):
+        from apps.progress.services import UserSavedItemsService
+
+        client, user = self._auth_client(api_client)
+        course = make_course()
+
+        save = client.post(
+            "/api/v1/progress/saved/courses/", {"item_id": str(course.pk)}, format="json"
+        )
+        assert save.status_code == 201, save.content
+        assert save.json()["course"]["video_access_granted"] is False
+
+        listing = client.get("/api/v1/progress/saved/courses/")
+        assert listing.status_code == 200, listing.content
+        saved_ids = {s["course"]["id"] for s in listing.json()["results"]}
+        assert str(course.pk) in saved_ids
+
+    def test_nested_course_serializer_honours_context(self):
+        """
+        Nested course serializers (combos/progress) pick up the parent
+        serializer's context — verified end-to-end: ComboCourseSerializer
+        nests CourseListSerializer, whose gate reads the ROOT context.
+        """
+        import types
+
+        from apps.combos.serializers import ComboCourseSerializer
+        from apps.progress.services import UserProgressService
+
+        course = make_course()
+        user = make_user()
+        UserProgressService.mark_course_started(user, course.pk)
+
+        stub = types.SimpleNamespace(
+            order=0, is_required=True, note="", course=course
+        )
+        nested = ComboCourseSerializer(
+            stub, context={"unlocked_course_ids": {course.pk}}
+        )
+        assert nested.data["course"]["video_access_granted"] is True
+        assert nested.data["course"]["source_url"] == course.source_url
