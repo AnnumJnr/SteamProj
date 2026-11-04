@@ -1,0 +1,68 @@
+# Production database migrations (manual, on demand).
+#
+# Render's free tier has no release phase, so new migrations are NOT applied
+# on deploy. Run this workflow after pushing code that adds migrations —
+# before using the new feature on the site.
+#
+# Same secret pattern as ingestion.yml: the single repository secret
+# INGEST_ENV holds the whole connection environment file; the yaml never
+# contains values.
+#
+# Idempotent: `migrate` applies only un-applied migrations, so running it
+# when everything is applied is a no-op.
+#
+# Run it:
+#   gh workflow run migrate.yml
+# or the "Run workflow" button on the Actions tab.
+
+name: Apply production migrations
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          # No pip cache: rarely run, and a stale cache just slows cold starts
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements/production.txt
+
+      - name: Restore database environment
+        env:
+          INGEST_ENV: ${{ secrets.INGEST_ENV }}
+        run: |
+          printf '%s\n' "$INGEST_ENV" > .env
+          set -a
+          source .env
+          set +a
+
+      - name: Show pending migrations
+        run: python backend/manage.py showmigrations --list --settings=core.settings.production | grep -v "\[X\]" | head -50 || true
+
+      - name: Apply migrations
+        run: python backend/manage.py migrate --settings=core.settings.production
+
+      - name: Verify applied
+        run: |
+          PENDING=$(python backend/manage.py showmigrations --settings=core.settings.production | grep "\[ \]" || true)
+          if [ -n "$PENDING" ]; then
+            echo "Un-applied migrations remain:"
+            echo "$PENDING"
+            exit 1
+          fi
+          echo "All migrations applied."

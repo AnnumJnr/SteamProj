@@ -1,0 +1,78 @@
+# ================================
+# Environment / Secrets
+# ================================
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# ================================
+# Python / Django
+# ================================
+.venv/
+venv/
+env/
+ENV/
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+*.log
+
+# Local database
+db.sqlite3
+db.sqlite3-journal
+
+# Django generated files
+staticfiles/
+media/
+
+# ================================
+# Node / Next.js
+# ================================
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+
+*.tsbuildinfo
+
+# ================================
+# Testing / Coverage
+# ================================
+.coverage
+coverage/
+htmlcov/
+.nyc_output/
+
+# ================================
+# OS
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# Editors
+# ================================
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ================================
+# Vercel
+# ================================
+.vercel/
+
+STEM_PLATFORM_MASTER_REFERENCE.md
+
+notes.txt
+notes.md
+presentation.md
+# Test evidence (local only)
+gui-test-screenshots/

@@ -1,0 +1,63 @@
+# Scheduled content ingestion for LearnWithGlinax (prod).
+#
+# Runs `manage.py ingest` against the production database. The job needs
+# no Celery worker and no Redis: the pipeline writes to Postgres directly
+# (upsert-idempotent — safe to re-run any time).
+#
+# Secrets live OUTSIDE this file: the single repository secret INGEST_ENV
+# holds an entire environment file (DB_HOST/DB_PORT/DB_NAME/DB_USER/
+# DB_PASSWORD, PGSSLMODE, YOUTUBE_API_KEY, DJANGO_SECRET_KEY). The yaml
+# only points at it — never any values. To rotate or update values:
+#   gh secret set INGEST_ENV < env-file
+#
+# Schedule: daily 03:30 UTC (GitHub cron is UTC and can drift ~15-60 min;
+# irrelevant for a daily upsert). Also runnable on demand:
+#   gh workflow run ingestion.yml
+# or the "Run workflow" button on the Actions tab.
+#
+# Note: GitHub disables scheduled workflows after 60 days without a
+# commit to the default branch — any push resets that clock.
+
+name: Nightly ingestion
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingestion
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements/production.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements/production.txt
+
+      # Step-level env is the injection-safe way to hand the secret to the
+      # shell; the value itself never appears in this file or in logs.
+      - name: Restore ingestion environment
+        env:
+          INGEST_ENV: ${{ secrets.INGEST_ENV }}
+        run: |
+          printf '%s\n' "$INGEST_ENV" > .env
+          set -a
+          source .env
+          set +a
+
+      - name: Run ingestion
+        run: python backend/manage.py ingest --settings=core.settings.production
