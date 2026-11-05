@@ -17,6 +17,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.courses.services import CourseService
 from apps.progress.serializers import (
     MarkCourseActionSerializer,
     ProgressSummarySerializer,
@@ -45,7 +46,9 @@ class UserProgressListView(APIView):
 
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = UserProgressSerializer(page, many=True)
+        serializer = UserProgressSerializer(
+            page, many=True, context=CourseService.access_context(request.user)
+        )
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -97,7 +100,12 @@ class MarkCourseStartedView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(UserProgressSerializer(progress).data, status=status.HTTP_200_OK)
+        return Response(
+            UserProgressSerializer(
+                progress, context=CourseService.access_context(request.user)
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class MarkCourseCompleteView(APIView):
@@ -122,7 +130,12 @@ class MarkCourseCompleteView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(UserProgressSerializer(progress).data, status=status.HTTP_200_OK)
+        return Response(
+            UserProgressSerializer(
+                progress, context=CourseService.access_context(request.user)
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 # ─── Saved Courses ────────────────────────────────────────────────────────────
@@ -141,7 +154,9 @@ class SavedCoursesListView(APIView):
 
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = SavedCourseSerializer(page, many=True)
+        serializer = SavedCourseSerializer(
+            page, many=True, context=CourseService.access_context(request.user)
+        )
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request: Request) -> Response:
@@ -157,7 +172,12 @@ class SavedCoursesListView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(SavedCourseSerializer(saved).data, status=status.HTTP_201_CREATED)
+        return Response(
+            SavedCourseSerializer(
+                saved, context=CourseService.access_context(request.user)
+            ).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class SavedCourseDetailView(APIView):
