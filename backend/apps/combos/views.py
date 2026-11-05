@@ -26,6 +26,7 @@ from apps.combos.serializers import (
     UpdateComboSerializer,
 )
 from apps.combos.services import ComboRatingService, ComboService
+from apps.courses.services import CourseService
 from apps.progress.serializers import ComboProgressSerializer
 from common.pagination import StandardResultsPagination
 
@@ -73,7 +74,10 @@ class ComboListView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
-            ComboDetailSerializer(combo, context={"request": request}).data,
+            ComboDetailSerializer(
+                combo,
+                context={"request": request, **CourseService.access_context(request.user)},
+            ).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -100,7 +104,9 @@ class ComboDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ComboDetailSerializer(combo, context={"request": request})
+        serializer = ComboDetailSerializer(
+            combo, context={"request": request, **CourseService.access_context(request.user)}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request: Request, combo_id) -> Response:
@@ -121,7 +127,10 @@ class ComboDetailView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
-            ComboDetailSerializer(updated_combo, context={"request": request}).data,
+            ComboDetailSerializer(
+                updated_combo,
+                context={"request": request, **CourseService.access_context(request.user)},
+            ).data,
             status=status.HTTP_200_OK,
         )
 
