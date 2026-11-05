@@ -53,24 +53,70 @@ export function truncate(str: string, maxLength: number): string {
 }
 
 /**
- * Builds a YouTube video ID from a source URL.
- * Handles standard watch URLs and youtu.be short links.
- * Returns null if the URL cannot be parsed.
+ * What kind of YouTube player to embed, and the ID to embed it with.
+ *  video    → https://www.youtube.com/embed/<id>
+ *  playlist → https://www.youtube.com/embed/videoseries?list=<id>
  */
-export function extractYouTubeId(url: string): string | null {
+export type YouTubeEmbed =
+  | { type: "video"; id: string }
+  | { type: "playlist"; id: string };
+
+/**
+ * Extracts the embeddable YouTube target from any YouTube URL format.
+ *
+ * Handles all URL shapes that the ingestion pipeline produces:
+ *   https://www.youtube.com/watch?v=abc123        → video
+ *   https://youtube.com/watch?v=abc123            → video
+ *   https://youtu.be/abc123                       → video
+ *   https://www.youtube.com/embed/abc123          → video
+ *   https://www.youtube.com/playlist?list=PLxxx   → playlist
+ *
+ * Playlists matter: the ingestion pipeline stores YouTube courses as
+ * playlist URLs, so without playlist support nearly every YouTube course
+ * falls back to a thumbnail instead of an embedded player.
+ */
+export function extractYouTubeEmbed(url: string): YouTubeEmbed | null {
+  if (!url) return null;
+
   try {
     const urlObj = new URL(url);
+
+    // Short link: youtu.be/VIDEO_ID
     if (urlObj.hostname === "youtu.be") {
-      return urlObj.pathname.slice(1);
+      const id = urlObj.pathname.slice(1).split("/")[0];
+      return id ? { type: "video", id } : null;
     }
+
+    // Standard, embed, and playlist URLs: youtube.com and www.youtube.com
     if (
       urlObj.hostname === "www.youtube.com" ||
       urlObj.hostname === "youtube.com"
     ) {
-      return urlObj.searchParams.get("v");
+      // Already an embed URL: /embed/VIDEO_ID
+      if (urlObj.pathname.startsWith("/embed/")) {
+        const id = urlObj.pathname.split("/embed/")[1]?.split("/")[0];
+        return id ? { type: "video", id } : null;
+      }
+
+      // Playlist URL: /playlist?list=PLxxx (no v param)
+      if (urlObj.pathname === "/playlist") {
+        const list = urlObj.searchParams.get("list");
+        return list ? { type: "playlist", id: list } : null;
+      }
+
+      // Standard watch URL: /watch?v=VIDEO_ID
+      // A playlist param may accompany it; the video takes precedence.
+      const v = urlObj.searchParams.get("v");
+      if (v) return { type: "video", id: v };
+
+      // /watch with only ?list=... (rare) still embeds as a playlist
+      const list = urlObj.searchParams.get("list");
+      return list ? { type: "playlist", id: list } : null;
     }
+
     return null;
   } catch {
+    // URL parsing failed — not a valid URL
     return null;
   }
 }
