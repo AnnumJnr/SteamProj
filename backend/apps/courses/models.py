@@ -318,3 +318,53 @@ class Course(TimestampedModel):
 
     def __str__(self):
         return f"{self.title} ({self.provider})"
+
+class CourseVideoItem(TimestampedModel):
+    """
+    A single video inside a playlist-backed course.
+
+    Populated exclusively by the ingestion pipeline (YouTube playlistItems).
+    Powers the playlist sidebar on the course detail page — the user picks a
+    video here exactly like on YouTube's own playlist UI.
+
+    Rule 15: No direct writes outside services (ingestion service owns writes).
+    """
+
+    course = models.ForeignKey(
+        "courses.Course",
+        on_delete=models.CASCADE,
+        related_name="video_items",
+    )
+    video_id = models.CharField(
+        max_length=32,
+        help_text="YouTube video ID (the ?v= parameter).",
+    )
+    title = models.CharField(max_length=500)
+    position = models.PositiveIntegerField(
+        default=0,
+        help_text="Order of the video within the playlist (0-based).",
+    )
+    thumbnail_url = models.URLField(blank=True, default="")
+    duration_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Video duration in seconds; null when YouTube reports none.",
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the video was published on YouTube.",
+    )
+
+    class Meta:
+        verbose_name = "Course Video Item"
+        verbose_name_plural = "Course Video Items"
+        db_table = "course_video_items"
+        unique_together = [("course", "video_id")]
+        ordering = ["position"]
+        indexes = [
+            models.Index(fields=["course"], name="idx_video_item_course"),
+        ]
+
+    def __str__(self):
+        return f"{self.position + 1}. {self.title} ({self.course.title})"
